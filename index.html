@@ -115,7 +115,7 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
 ═══════════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
   <div style="margin-bottom:1.5rem;padding-top:.5rem">
-    <p class="muted" style="margin-bottom:.25rem">PUCV · Instituto de Química | Intituto de Biología</p>
+    <p class="muted" style="margin-bottom:.25rem">PUCV · Instituto de Química</p>
     <h1>Noticing triádico reflexivo</h1>
     <p class="muted">Bitácora colaborativa · Práctica Docente Final</p>
   </div>
@@ -338,13 +338,28 @@ function joinSession(){
 // LOBBY
 // ═══════════════════════════════════════════
 async function enterLobby(){
-  await db.ref(`sessions/${S.sessionId}/presence/${S.role}`).set({
+  await db.ref('sessions/'+S.sessionId+'/presence/'+S.role).set({
     role: S.role, label: ROLES[S.role], ts: Date.now()
   });
   document.getElementById('lobby-code').textContent = S.sessionId;
   show('lobby');
   updateLobby();
   S.lobbyInterval = setInterval(updateLobby, 4000);
+  // Real-time listener: show map on ALL devices as soon as it's generated
+  db.ref('sessions/'+S.sessionId+'/map').on('value', snap=>{
+    const val = snap.val();
+    if(!val || !val.result) return;
+    // Only auto-show if user is on view screen and map tab
+    if(document.getElementById('screen-view').classList.contains('active') && S.viewTab==='map'){
+      renderMapVisual(val.result, {});
+    }
+    // Show notification badge on map tab if user is elsewhere
+    const mapTab = document.getElementById('tab-map');
+    if(mapTab && S.viewTab!=='map'){
+      mapTab.textContent = 'Mapa IA ●';
+      mapTab.style.color = 'var(--teal-dark)';
+    }
+  });
 }
 
 async function updateLobby(){
@@ -434,8 +449,14 @@ function switchTab(tab){
   ['all','att','int','dec','map'].forEach(t=>{
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
   });
-  if(tab==='map') renderMap();
-  else renderView();
+  // Clear notification badge on map tab
+  if(tab==='map'){
+    const mapTab = document.getElementById('tab-map');
+    if(mapTab){ mapTab.textContent='Mapa IA'; mapTab.style.color=''; }
+    renderMap();
+  } else {
+    renderView();
+  }
 }
 
 async function refreshView(){
@@ -495,13 +516,22 @@ async function renderView(){
 // ═══════════════════════════════════════════
 async function renderMap(){
   const container = document.getElementById('view-content');
-  container.innerHTML = `<div class="card">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
-      <span class="spinner"></span>
-      <span style="font-size:14px;color:var(--text2)">Analizando respuestas con IA…</span>
-    </div>
-    <p class="muted" style="font-size:12px">La IA ubica cada respuesta en ALACT × Noticing e infiere la práctica científica subyacente.</p>
-  </div>`;
+
+  // Check if map already exists in Firebase (another device may have generated it)
+  const cached = await db.ref('sessions/'+S.sessionId+'/map').get();
+  if(cached.val()?.result){
+    const all = await loadAllAnswers();
+    renderMapVisual(cached.val().result, all);
+    return;
+  }
+
+  container.innerHTML = '<div class="card">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">'
+    + '<span class="spinner"></span>'
+    + '<span style="font-size:14px;color:var(--text2)">Analizando respuestas con IA…</span>'
+    + '</div>'
+    + '<p class="muted" style="font-size:12px">La IA ubica cada respuesta en ALACT × Noticing e infiere la práctica científica subyacente.</p>'
+    + '</div>';
 
   const all = await loadAllAnswers();
 
@@ -580,20 +610,25 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 }`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
+
+    const response = await fetch(WORKER_URL, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:2000,
-        system: systemPrompt,
-        messages:[{role:'user', content:`Aquí están las respuestas de la tríada:\n${answersText}`}]
+        messages:[
+          {role:'system', content: systemPrompt},
+          {role:'user', content:'Aquí están las respuestas de la tríada:\n'+answersText}
+        ]
       })
     });
     const data = await response.json();
-    const raw = data.content?.find(b=>b.type==='text')?.text || '';
+    const raw = data.content?.[0]?.text || '';
     const clean = raw.replace(/```json|```/g,'').trim();
     const result = JSON.parse(clean);
+
+    // Save map to Firebase so all devices receive it via listener
+    await db.ref('sessions/'+S.sessionId+'/map').set({result, ts:Date.now()});
     renderMapVisual(result, all);
   } catch(e){
     container.innerHTML = `<div class="card"><p class="error">Error al generar el mapa: ${e.message}</p><p class="muted" style="margin-top:6px;font-size:12px">Verifica que haya respuestas suficientes e intenta de nuevo.</p><button class="btn btn-primary" style="margin-top:.75rem" onclick="renderMap()">Reintentar</button></div>`;

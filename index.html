@@ -115,7 +115,7 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
 ═══════════════════════════════════════════ -->
 <div id="screen-home" class="screen active">
   <div style="margin-bottom:1.5rem;padding-top:.5rem">
-    <p class="muted" style="margin-bottom:.25rem">PUCV · Instituto de Química | Instituto de Biología</p>
+    <p class="muted" style="margin-bottom:.25rem">PUCV · Instituto de Química</p>
     <h1>Noticing triádico reflexivo</h1>
     <p class="muted">Bitácora colaborativa · Práctica Docente Final</p>
   </div>
@@ -521,15 +521,40 @@ async function renderMap(){
     return;
   }
 
-  const systemPrompt = `Eres un analista experto en noticing docente (Jacobs et al., 2010) y formación inicial de profesores de ciencias. 
+  const systemPrompt = `Eres un analista experto en noticing docente (Jacobs et al., 2010), el modelo ALACT de reflexión (Korthagen, 2001) y formación inicial de profesores de ciencias naturales.
+
 Tu tarea es analizar las respuestas de una tríada formativa (estudiante en formación, tutor universitario, profesor mentor) a una bitácora de noticing reflexivo sobre un episodio pedagógico en el aula de ciencias.
 
-Para CADA respuesta debes:
-1. Asignar la fase ALACT predominante: Acción | Looking Back | Awareness | Alternatives | Trial
-2. Confirmar la dimensión de noticing: Atender | Interpretar | Decidir
-3. Inferir la práctica científica subyacente: Indagación | Modelización | Argumentación | NoS (Naturaleza de la Ciencia) | No identificable
-4. Detectar si hay movimiento reflexivo entre dimensiones (p.ej. alguien que en Atender ya está Decidiendo)
-5. Identificar convergencias y divergencias entre los tres actores
+## MARCO CONCEPTUAL CRÍTICO
+
+El instrumento tiene tres tipos de preguntas por cada dimensión de noticing (Atender / Interpretar / Decidir):
+- **Lectura (L)**: pide describir lo que dice la bitácora del estudiante. Opera principalmente en las fases ALACT de "Acción" (describe lo ocurrido) y "Looking Back" (reconstruye el episodio desde el texto). Es el nivel más descriptivo.
+- **Reflexiva (R)**: pide al actor posicionarse desde su propio rol y hacer un "noticing del noticing" — reflexionar sobre su propio proceso de atender/interpretar/decidir. Opera principalmente en "Awareness" (toma de conciencia de la propia mirada) y "Alternatives" (cuando propone perspectivas distintas). Es el nivel meta-reflexivo.
+- **Dialógica (D)**: pide formular una pregunta hacia otro actor de la tríada. Activa el movimiento reflexivo triádico. Opera en "Alternatives" (cuando la pregunta propone alternativas) o "Trial" (cuando proyecta hacia la acción futura). Una pregunta dialógica superficial puede quedarse en "Looking Back".
+
+## CRITERIOS DE ASIGNACIÓN ALACT
+
+Asigna la fase ALACT según el CONTENIDO de la respuesta, no solo el tipo de pregunta:
+- **Acción**: describe hechos del episodio sin distancia reflexiva. "El estudiante hizo X."
+- **Looking Back**: reconstruye lo ocurrido con algo de distancia. "Lo que describe la bitácora es... / Noto que en ese momento..."
+- **Awareness**: toma conciencia de por qué notó eso y no otra cosa, o de la brecha entre lo esperado y lo ocurrido. "Me llama la atención porque desde mi posición como tutor... / Esto me hace ver que..."
+- **Alternatives**: genera perspectivas alternativas, cuestiona supuestos, propone marcos distintos. "Podría interpretarse también como... / Si en cambio..."
+- **Trial**: proyecta hacia acción futura concreta y fundamentada en lo reflexionado. "La próxima vez haría... porque esto me mostró que..."
+
+Una respuesta a una pregunta Reflexiva (R) que solo describe hechos sin distancia crítica debe asignarse a "Looking Back", no a "Awareness". El tipo de pregunta es una señal, no una garantía.
+
+## MOVIMIENTO REFLEXIVO
+
+Detecta si una respuesta muestra movimiento entre dimensiones de noticing (ej. alguien que en una pregunta de Atender ya está Interpretando o Decidiendo). Esto es metodológicamente relevante: indica que ese actor tiene mayor integración entre las tres habilidades de noticing (Jacobs et al., 2010).
+
+## PRÁCTICA CIENTÍFICA
+
+Infiere la práctica científica subyacente al episodio pedagógico desde el contenido de las respuestas:
+- **Indagación**: el episodio involucra preguntas, hipótesis, experimentos, búsqueda de evidencia.
+- **Modelización**: el episodio involucra construcción, uso o evaluación de modelos explicativos.
+- **Argumentación**: el episodio involucra justificación de afirmaciones, uso de evidencia para convencer, debate.
+- **NoS**: el episodio involucra reflexión sobre la naturaleza del conocimiento científico, cómo se construye la ciencia.
+- **No identificable**: las respuestas no permiten inferir la práctica con certeza.
 
 Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructura exacta:
 {
@@ -537,17 +562,21 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
     {
       "role": "student|tutor|mentor",
       "qid": "att-L|att-R|att-D|int-L|int-R|int-D|dec-L|dec-R|dec-D",
+      "qtype": "L|R|D",
       "alact": "Acción|Looking Back|Awareness|Alternatives|Trial",
+      "alact_rationale": "una frase breve que justifica por qué esta fase y no otra",
       "noticing": "Atender|Interpretar|Decidir",
       "practice": "Indagación|Modelización|Argumentación|NoS|No identificable",
       "movement": true|false,
       "movement_to": "Atender|Interpretar|Decidir|null",
+      "reflexive_depth": "descriptivo|analítico|crítico",
       "key_quote": "fragmento breve y representativo de la respuesta (máx 15 palabras)"
     }
   ],
-  "convergences": ["descripción breve de convergencia 1", ...],
-  "divergences": ["descripción breve de divergencia 1", ...],
-  "reflective_triggers": ["tensión o nudo reflexivo para la discusión triádica 1", ...]
+  "convergences": ["descripción breve de convergencia entre actores"],
+  "divergences": ["descripción breve de divergencia entre actores"],
+  "reflective_triggers": ["tensión o nudo reflexivo concreto para la discusión triádica"],
+  "alact_pattern": "descripción en 2-3 frases del patrón de trayectoria reflexiva que muestra la tríada en conjunto"
 }`;
 
   try {
@@ -573,76 +602,111 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 
 function renderMapVisual(result, all){
   const container = document.getElementById('view-content');
-
-  // Build grid: rows = ALACT phases, cols = roles, cells = nodes
   const alactPhases = ['Acción','Looking Back','Awareness','Alternatives','Trial'];
   const noticingDims = ['Atender','Interpretar','Decidir'];
+  const DEPTH_LABEL = {descriptivo:'Descriptivo',analítico:'Analítico',crítico:'Crítico'};
+  const DEPTH_COLOR = {descriptivo:'var(--gray-light)',analítico:'var(--amber-light)',crítico:'var(--teal-light)'};
+  const DEPTH_TEXT  = {descriptivo:'var(--gray-dark)',analítico:'var(--amber-dark)',crítico:'var(--teal-dark)'};
+  const QTYPE_LABEL = {L:'Lectura',R:'Reflexiva',D:'Dialógica'};
 
-  // Map grid: rows=ALACT, cols=Noticing
-  let gridHtml = `<div class="map-grid">
-    <div class="map-header">ALACT \\ Noticing</div>
-    <div class="map-header">Atender</div>
-    <div class="map-header">Interpretar</div>
-    <div class="map-header">Decidir</div>`;
+  let gridHtml = '<div class="map-grid">'
+    + '<div class="map-header">ALACT \\ Noticing</div>'
+    + '<div class="map-header">Atender</div>'
+    + '<div class="map-header">Interpretar</div>'
+    + '<div class="map-header">Decidir</div>';
 
   for(const alact of alactPhases){
-    gridHtml += `<div class="map-phase">${alact}</div>`;
+    gridHtml += '<div class="map-phase">'+alact+'</div>';
     for(const noticing of noticingDims){
       const nodes = result.nodes.filter(n=>n.alact===alact && n.noticing===noticing);
       let cellHtml = nodes.map(n=>{
-        const roleClass = `node-${n.role}`;
-        const roleLabel = ROLES[n.role]?.split(' ')[0]||n.role;
-        const pratice = n.practice!=='No identificable'?` · ${n.practice.substring(0,3)}`:'';
-        return `<span class="map-node ${roleClass}" title="${n.key_quote}">${roleLabel}${pratice}</span>`;
+        const roleLabel = (ROLES[n.role]||n.role).split(' ')[0];
+        const practice = (n.practice && n.practice!=='No identificable') ? ' · '+n.practice.substring(0,3) : '';
+        const qtype = n.qtype ? ' ('+n.qtype+')' : '';
+        const movement = n.movement ? ' \u21e2' : '';
+        const tooltip = [n.key_quote, n.alact_rationale ? '— '+n.alact_rationale : ''].filter(Boolean).join(' ');
+        return '<span class="map-node node-'+n.role+'" title="'+tooltip+'">'+roleLabel+qtype+practice+movement+'</span>';
       }).join('');
-      gridHtml += `<div class="map-cell">${cellHtml}</div>`;
+      gridHtml += '<div class="map-cell">'+cellHtml+'</div>';
     }
   }
   gridHtml += '</div>';
 
-  // Convergences / divergences
-  const conv = (result.convergences||[]).map(c=>`<li>${c}</li>`).join('');
-  const div2 = (result.divergences||[]).map(d=>`<li>${d}</li>`).join('');
-  const triggers = (result.reflective_triggers||[]).map(t=>`<li>${t}</li>`).join('');
-
-  // Practice summary
   const practiceCount = {};
   result.nodes.forEach(n=>{
     if(n.practice && n.practice!=='No identificable')
       practiceCount[n.practice]=(practiceCount[n.practice]||0)+1;
   });
   const practiceHtml = Object.entries(practiceCount).map(([k,v])=>
-    `<span style="background:var(--bg2);border:0.5px solid var(--border);padding:2px 8px;border-radius:20px;font-size:12px;margin:2px">${k} (${v})</span>`
+    '<span style="background:var(--bg2);border:0.5px solid var(--border);padding:2px 8px;border-radius:20px;font-size:12px;margin:2px">'+k+' ('+v+')</span>'
   ).join('');
 
-  container.innerHTML = `
-    <div class="card">
-      <h2 style="margin-bottom:.75rem">Mapa de trayectoria triádica</h2>
-      <p class="muted" style="font-size:12px;margin-bottom:.75rem">Cada nodo = una respuesta ubicada en fase ALACT × dimensión de noticing. Pasa el cursor para ver el fragmento.</p>
-      <div style="display:flex;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
-        <span class="map-node node-student">Estudiante</span>
-        <span class="map-node node-tutor">Tutor</span>
-        <span class="map-node node-mentor">Mentor</span>
-        <span class="muted" style="font-size:12px;align-self:center">· Ind=Indagación · Mod=Modelización · Arg=Argumentación · NoS</span>
-      </div>
-      ${gridHtml}
-    </div>
+  const byType = {L:[],R:[],D:[]};
+  result.nodes.forEach(n=>{ if(n.qtype && byType[n.qtype]) byType[n.qtype].push(n); });
+  let depthHtml = '';
+  for(const [type, nodes] of Object.entries(byType)){
+    if(!nodes.length) continue;
+    depthHtml += '<p style="font-size:12px;font-weight:600;color:var(--text2);margin:.6rem 0 .3rem">'+(QTYPE_LABEL[type]||type)+' ('+type+')</p>';
+    depthHtml += nodes.map(n=>{
+      const depth = n.reflexive_depth||'descriptivo';
+      const bg = DEPTH_COLOR[depth]||'var(--bg2)';
+      const tc = DEPTH_TEXT[depth]||'var(--text2)';
+      const roleLabel = (ROLES[n.role]||n.role).split(' ')[0];
+      const movement = n.movement ? ' → '+n.movement_to : '';
+      return '<div style="display:flex;align-items:baseline;gap:8px;padding:4px 0;border-bottom:0.5px solid var(--border)">'
+        +'<span class="map-node node-'+n.role+'" style="flex-shrink:0">'+roleLabel+'</span>'
+        +'<span style="font-size:12px;color:var(--text2);flex:1">'+n.alact+movement+'</span>'
+        +'<span style="background:'+bg+';color:'+tc+';font-size:11px;padding:1px 7px;border-radius:20px">'+(DEPTH_LABEL[depth]||depth)+'</span>'
+        +'</div>';
+    }).join('');
+  }
 
-    ${practiceHtml ? `<div class="card"><p class="label">Prácticas científicas inferidas</p><div style="margin-top:4px">${practiceHtml}</div></div>` : ''}
+  const conv     = (result.convergences||[]).map(c=>'<li>'+c+'</li>').join('');
+  const div2     = (result.divergences||[]).map(d=>'<li>'+d+'</li>').join('');
+  const triggers = (result.reflective_triggers||[]).map(t=>'<li>'+t+'</li>').join('');
 
-    ${conv ? `<div class="card"><h2>Convergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">${conv}</ul></div>` : ''}
 
-    ${div2 ? `<div class="card"><h2>Divergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">${div2}</ul></div>` : ''}
+  let html = '<div class="card">'
+    + '<h2 style="margin-bottom:.5rem">Mapa de trayectoria triádica</h2>'
+    + '<p class="muted" style="font-size:12px;margin-bottom:.75rem">Filas = fase ALACT · Columnas = dimensión de noticing · (L/R/D) = tipo de pregunta · ⇢ = movimiento reflexivo. Pasa el cursor para ver fragmento y justificación ALACT.</p>'
+    + '<div style="display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap;align-items:center">'
+    + '<span class="map-node node-student">Estudiante</span>'
+    + '<span class="map-node node-tutor">Tutor</span>'
+    + '<span class="map-node node-mentor">Mentor</span>'
+    + '<span class="muted" style="font-size:11px;margin-left:4px">Ind · Mod · Arg · NoS = práctica inferida</span>'
+    + '</div>'
+    + gridHtml
+    + '</div>';
 
-    ${triggers ? `<div class="card" style="border-left:3px solid var(--purple);border-radius:0 var(--radius) var(--radius) 0">
-      <h2 style="color:var(--purple-dark)">Nudos reflexivos para la discusión triádica</h2>
-      <p class="muted" style="font-size:12px;margin-bottom:.5rem">Estas tensiones emergen del mapa — úsalas como agenda del encuentro</p>
-      <ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">${triggers}</ul>
-    </div>` : ''}
+  if(result.alact_pattern)
+    html += '<div class="card" style="border-left:3px solid var(--teal);border-radius:0 var(--radius) var(--radius) 0">'
+      + '<p class="label" style="color:var(--teal-dark)">Patrón de trayectoria reflexiva triádica</p>'
+      + '<p style="font-size:14px;line-height:1.7;margin-top:4px">'+result.alact_pattern+'</p>'
+      + '</div>';
 
-    <div style="margin-top:.5rem">
-      <button class="btn btn-full" onclick="exportSession()">↓ Exportar sesión completa (JSON)</button>
-    </div>`;
+  if(practiceHtml)
+    html += '<div class="card"><p class="label">Prácticas científicas inferidas</p><div style="margin-top:4px">'+practiceHtml+'</div></div>';
+
+  if(depthHtml)
+    html += '<div class="card">'
+      + '<p class="label">Profundidad reflexiva por tipo de pregunta</p>'
+      + '<p class="muted" style="font-size:11px;margin:.3rem 0 .5rem">Descriptivo = describe hechos · Analítico = relaciona causas · Crítico = cuestiona supuestos</p>'
+      + depthHtml + '</div>';
+
+  if(conv)
+    html += '<div class="card"><h2>Convergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+conv+'</ul></div>';
+
+  if(div2)
+    html += '<div class="card"><h2>Divergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+div2+'</ul></div>';
+
+  if(triggers)
+    html += '<div class="card" style="border-left:3px solid var(--purple);border-radius:0 var(--radius) var(--radius) 0">'
+      + '<h2 style="color:var(--purple-dark)">Nudos reflexivos para la discusión triádica</h2>'
+      + '<p class="muted" style="font-size:12px;margin-bottom:.5rem">Estas tensiones emergen del mapa — úsalas como agenda del encuentro</p>'
+      + '<ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+triggers+'</ul></div>';
+
+  html += '<div style="margin-top:.5rem"><button class="btn btn-full" onclick="exportSession()">↓ Exportar sesión completa (JSON)</button></div>';
+  container.innerHTML = html;
 
   // Save map to Firebase for later retrieval
   db.ref(`sessions/${S.sessionId}/map`).set({result, ts:Date.now()});

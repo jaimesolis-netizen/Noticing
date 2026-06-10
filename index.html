@@ -245,13 +245,13 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
 // FIREBASE CONFIG
 // ═══════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "AIzaSyAzR0XcOYioyYUW68LSmcPNOCOtkevJXG8",
+  apiKey: "PASTE_YOUR_FIREBASE_KEY_HERE",
   authDomain: "noticing-663b2.firebaseapp.com",
   databaseURL: "https://noticing-663b2-default-rtdb.firebaseio.com",
   projectId: "noticing-663b2",
   storageBucket: "noticing-663b2.appspot.com",
-  messagingSenderId: "115663214141",
-  appId: "1:115663214141:web:9e44ad0638e8d85950fc54"
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -583,7 +583,6 @@ Infiere la práctica científica subyacente al episodio pedagógico desde el con
 - **Indagación**: el episodio involucra preguntas, hipótesis, experimentos, búsqueda de evidencia.
 - **Modelización**: el episodio involucra construcción, uso o evaluación de modelos explicativos.
 - **Argumentación**: el episodio involucra justificación de afirmaciones, uso de evidencia para convencer, debate.
-- **NoS**: el episodio involucra reflexión sobre la naturaleza del conocimiento científico, cómo se construye la ciencia.
 - **No identificable**: las respuestas no permiten inferir la práctica con certeza.
 
 Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructura exacta:
@@ -596,7 +595,428 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
       "alact": "Acción|Looking Back|Awareness|Alternatives|Trial",
       "alact_rationale": "una frase breve que justifica por qué esta fase y no otra",
       "noticing": "Atender|Interpretar|Decidir",
-      "practice": "Indagación|Modelización|Argumentación|NoS|No identificable",
+      "practice": "Indagación|Modelización|Argumentación|No identificable",
+      "movement": true|false,
+      "movement_to": "Atender|Interpretar|Decidir|null",
+      "reflexive_depth": "descriptivo|analítico|crítico",
+      "key_quote": "fragmento breve y representativo de la respuesta (máx 15 palabras)"
+    }
+  ],
+  "convergences": ["descripción breve de convergencia entre actores"],
+  "divergences": ["descripción breve de divergencia entre actores"],
+  "reflective_triggers": ["tensión o nudo reflexivo concreto para la discusión triádica"],
+  "alact_pattern": "descripción en 2-3 frases del patrón de trayectoria reflexiva que muestra la tríada en conjunto"
+}`;
+
+  try {
+    const WORKER_URL = 'PASTE_YOUR_WORKER_URL_HERE';
+
+    const response = await fetch(WORKER_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        messages:[
+          {role:'system', content: systemPrompt},
+          {role:'user', content:'Aquí están las respuestas de la tríada:\n'+answersText}
+        ]
+      })
+    });
+    const data = await response.json();
+    const raw = data.content?.[0]?.text || '';
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const result = JSON.parse(clean);
+
+    // Save map to Firebase so all devices receive it via listener
+    await db.ref('sessions/'+S.sessionId+'/map').set({result, ts:Date.now()});
+    renderMapVisual(result, all);
+  } catch(e){
+    container.innerHTML = `<div class="card"><p class="error">Error al generar el mapa: ${e.message}</p><p class="muted" style="margin-top:6px;font-size:12px">Verifica que haya respuestas suficientes e intenta de nuevo.</p><button class="btn btn-primary" style="margin-top:.75rem" onclick="renderMap()">Reintentar</button></div>`;
+  }
+}
+
+function renderMapVisual(result, all){
+  const container = document.getElementById('view-content');
+  const alactPhases = ['Acción','Looking Back','Awareness','Alternatives','Trial'];
+  const noticingDims = ['Atender','Interpretar','Decidir'];
+  const QTYPE_LABEL = {L:'Lectura',R:'Reflexiva',D:'Dialógica'};
+
+  // Practice → cell background color (triangulation third axis)
+  const PRACTICE_BG = {
+    'Indagación':  'rgba(55,138,221,0.10)',
+    'Modelización':'rgba(29,158,117,0.10)',
+    'Argumentación':'rgba(186,117,23,0.10)',
+  };
+
+  // Depth → node border (integrated into map nodes)
+  const DEPTH_BORDER = {
+    descriptivo: '1px solid rgba(136,135,128,0.5)',
+    analítico:   '2px solid #BA7517',
+    crítico:     '2.5px solid #1D9E75',
+  };
+  const DEPTH_TITLE = {
+    descriptivo: 'Profundidad: descriptivo',
+    analítico:   'Profundidad: analítico',
+    crítico:     'Profundidad: crítico',
+  };
+
+  // Compute dominant practice per cell (ALACT × Noticing)
+  const cellPractice = {};
+  result.nodes.forEach(n => {
+    const key = n.alact+'|'+n.noticing;
+    if(!cellPractice[key]) cellPractice[key] = {};
+    if(n.practice && n.practice !== 'No identificable')
+      cellPractice[key][n.practice] = (cellPractice[key][n.practice]||0)+1;
+  });
+  function dominantPractice(alact, noticing){
+    const counts = cellPractice[alact+'|'+noticing]||{};
+    const entries = Object.entries(counts);
+    if(!entries.length) return null;
+    return entries.sort((a,b)=>b[1]-a[1])[0][0];
+  }
+
+  // Build grid
+  let gridHtml = '<div class="map-grid">'
+    + '<div class="map-header">ALACT \ Noticing</div>'
+    + '<div class="map-header">Atender</div>'
+    + '<div class="map-header">Interpretar</div>'
+    + '<div class="map-header">Decidir</div>';
+
+  for(const alact of alactPhases){
+    gridHtml += '<div class="map-phase">'+alact+'</div>';
+    for(const noticing of noticingDims){
+      const nodes = result.nodes.filter(n=>n.alact===alact && n.noticing===noticing);
+      const prac = dominantPractice(alact, noticing);
+      const cellBg = prac ? PRACTICE_BG[prac]||'' : '';
+      let cellHtml = nodes.map(n=>{
+        const roleLabel = (ROLES[n.role]||n.role).split(' ')[0];
+        const qtype = n.qtype ? '('+n.qtype+')' : '';
+        const movement = n.movement ? ' ⇢' : '';
+        const border = DEPTH_BORDER[n.reflexive_depth]||DEPTH_BORDER['descriptivo'];
+        const depthTitle = DEPTH_TITLE[n.reflexive_depth]||'';
+        const tooltip = [n.key_quote, n.alact_rationale ? '— '+n.alact_rationale : '', depthTitle].filter(Boolean).join(' · ');
+        return '<span class="map-node node-'+n.role+'" style="border:'+border+'" title="'+tooltip+'">'+roleLabel+' '+qtype+movement+'</span>';
+      }).join('');
+      gridHtml += '<div class="map-cell" style="background:'+cellBg+'">'+cellHtml+'</div>';
+    }
+  }
+  gridHtml += '</div>';
+
+  // Practice count
+  const practiceCount = {};
+  result.nodes.forEach(n=>{
+    if(n.practice && n.practice!=='No identificable')
+      practiceCount[n.practice]=(practiceCount[n.practice]||0)+1;
+  });
+  const practiceHtml = Object.entries(practiceCount).map(([k,v])=>
+    '<span style="background:var(--bg2);border:0.5px solid var(--border);padding:2px 8px;border-radius:20px;font-size:12px;margin:2px">'+k+' ('+v+')</span>'
+  ).join('');
+
+  const conv     = (result.convergences||[]).map(c=>'<li>'+c+'</li>').join('');
+  const div2     = (result.divergences||[]).map(d=>'<li>'+d+'</li>').join('');
+  const triggers = (result.reflective_triggers||[]).map(t=>'<li>'+t+'</li>').join('');
+
+  // Legend
+  const legendHtml = '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:.75rem;align-items:center;font-size:11px;color:var(--text2)">'
+    + '<span style="font-weight:500;margin-right:2px">Fondo de celda:</span>'
+    + '<span style="display:flex;align-items:center;gap:3px"><span style="width:12px;height:12px;border-radius:2px;background:rgba(55,138,221,0.2);display:inline-block"></span>Indagación</span>'
+    + '<span style="display:flex;align-items:center;gap:3px"><span style="width:12px;height:12px;border-radius:2px;background:rgba(29,158,117,0.2);display:inline-block"></span>Modelización</span>'
+    + '<span style="display:flex;align-items:center;gap:3px"><span style="width:12px;height:12px;border-radius:2px;background:rgba(186,117,23,0.2);display:inline-block"></span>Argumentación</span>'
+    + '<span style="margin-left:8px;font-weight:500">Borde del nodo:</span>'
+    + '<span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:28px;height:14px;border-radius:20px;border:1px solid rgba(136,135,128,0.5)"></span>Descriptivo</span>'
+    + '<span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:28px;height:14px;border-radius:20px;border:2px solid #BA7517"></span>Analítico</span>'
+    + '<span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:28px;height:14px;border-radius:20px;border:2.5px solid #1D9E75"></span>Crítico</span>'
+    + '</div>';
+
+  let html = '<div class="card">'
+    + '<h2 style="margin-bottom:.5rem">Mapa de trayectoria triádica</h2>'
+    + '<p class="muted" style="font-size:12px;margin-bottom:.6rem">Fondo de celda = práctica científica · Borde del nodo = profundidad reflexiva · (L/R/D) = tipo de pregunta · ⇢ = movimiento entre dimensiones. Pasa el cursor para ver fragmento y justificación.</p>'
+    + '<div style="display:flex;gap:6px;margin-bottom:.6rem;flex-wrap:wrap;align-items:center">'
+    + '<span class="map-node node-student">Estudiante</span>'
+    + '<span class="map-node node-tutor">Tutor</span>'
+    + '<span class="map-node node-mentor">Mentor</span>'
+    + '</div>'
+    + legendHtml
+    + gridHtml
+    + '</div>';
+
+  if(result.alact_pattern)
+    html += '<div class="card" style="border-left:3px solid var(--teal);border-radius:0 var(--radius) var(--radius) 0">'
+      + '<p class="label" style="color:var(--teal-dark)">Patrón de trayectoria reflexiva triádica</p>'
+      + '<p style="font-size:14px;line-height:1.7;margin-top:4px">'+result.alact_pattern+'</p>'
+      + '</div>';
+
+  if(practiceHtml)
+    html += '<div class="card"><p class="label">Prácticas científicas inferidas</p><div style="margin-top:4px">'+practiceHtml+'</div></div>';
+
+  if(conv)
+    html += '<div class="card"><h2>Convergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+conv+'</ul></div>';
+
+  if(div2)
+    html += '<div class="card"><h2>Divergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+div2+'</ul></div>';
+
+  if(triggers)
+    html += '<div class="card" style="border-left:3px solid var(--purple);border-radius:0 var(--radius) var(--radius) 0">'
+      + '<h2 style="color:var(--purple-dark)">Nudos reflexivos para la discusión triádica</h2>'
+      + '<p class="muted" style="font-size:12px;margin-bottom:.5rem">Estas tensiones emergen del mapa — úsalas como agenda del encuentro</p>'
+      + '<ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+triggers+'</ul></div>';
+
+  html += '<div style="margin-top:.5rem;display:flex;gap:8px">'
+    + '<button class="btn btn-primary" style="flex:1" onclick="regenerateMap()">↺ Regenerar mapa</button>'
+    + '<button class="btn btn-full" style="flex:1" onclick="exportSession()">↓ Exportar JSON</button>'
+    + '</div>';
+
+  container.innerHTML = html;
+
+  db.ref('sessions/'+S.sessionId+'/map').on('value', snap=>{
+    const val = snap.val();
+    if(!val || !val.result) return;
+    // Only auto-show if user is on view screen and map tab
+    if(document.getElementById('screen-view').classList.contains('active') && S.viewTab==='map'){
+      renderMapVisual(val.result, {});
+    }
+    // Show notification badge on map tab if user is elsewhere
+    const mapTab = document.getElementById('tab-map');
+    if(mapTab && S.viewTab!=='map'){
+      mapTab.textContent = 'Mapa IA ●';
+      mapTab.style.color = 'var(--teal-dark)';
+    }
+  });
+}
+
+async function updateLobby(){
+  const snap = await db.ref(`sessions/${S.sessionId}/presence`).get();
+  const val = snap.val() || {};
+  const present = Object.keys(val);
+  const el = document.getElementById('lobby-members');
+  if(!present.length){el.innerHTML='<div class="empty">Esperando participantes…</div>';return;}
+  el.innerHTML = present.map(r=>`
+    <div class="member-row">
+      <span class="pill ${PILL_CLASS[r]}">${ROLES[r]||r}</span>
+      <span style="color:var(--teal);font-size:13px;margin-left:auto">✓ conectado</span>
+    </div>`).join('');
+}
+
+function startSession(){
+  clearInterval(S.lobbyInterval);
+  S.currentQ = 0; S.answers = {};
+  show('question');
+  renderQuestion();
+}
+
+function goHome(){
+  clearInterval(S.lobbyInterval);
+  S.role=null; S.sessionId=null; S.currentQ=0; S.answers={};
+  ['student','tutor','mentor'].forEach(r=>document.getElementById('btn-'+r).classList.remove('selected'));
+  show('home');
+}
+
+// ═══════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════
+function renderQuestion(){
+  const q = QUESTIONS[S.currentQ];
+  const total = QUESTIONS.length;
+  document.getElementById('q-pill').innerHTML = `<span class="pill ${PILL_CLASS[S.role]}">${ROLES[S.role]}</span>`;
+  document.getElementById('q-session-label').textContent = 'Sesión '+S.sessionId;
+  document.getElementById('q-phase-tag').innerHTML = `<span class="phase ${PHASE_CLASS[q.phase]}">${q.phaseLabel}</span>`;
+  document.getElementById('q-type-badge').innerHTML = `<span class="qtype ${TYPE_CLASS[q.type]}">${q.typeLabel}</span>`;
+  document.getElementById('q-text').textContent = q.text;
+  document.getElementById('q-answer').value = S.answers[S.currentQ]||'';
+  document.getElementById('q-counter').textContent = `${S.currentQ+1} / ${total}`;
+  document.getElementById('q-prev').style.visibility = S.currentQ===0?'hidden':'visible';
+  document.getElementById('q-next').textContent = S.currentQ===total-1?'Ver respuestas →':'Siguiente →';
+  const pct = Math.round((S.currentQ/(total-1))*100);
+  document.getElementById('q-progress').style.width = pct+'%';
+  // Steps
+  const dots = document.getElementById('q-steps');
+  dots.innerHTML = QUESTIONS.map((_,i)=>{
+    let cls = i<S.currentQ?'step-done':i===S.currentQ?'step-active':'step-pending';
+    return `<div class="step-dot ${cls}">${i+1}</div>`;
+  }).join('');
+}
+
+async function nextQ(){
+  const text = document.getElementById('q-answer').value.trim();
+  S.answers[S.currentQ] = text;
+  // Save to Firebase
+  const q = QUESTIONS[S.currentQ];
+  if(text){
+    await db.ref(`sessions/${S.sessionId}/answers/${S.role}/${q.id}`).set({
+      text, role:S.role, phase:q.phase, type:q.type, qid:q.id, ts:Date.now()
+    });
+  }
+  if(S.currentQ < QUESTIONS.length-1){
+    S.currentQ++;
+    renderQuestion();
+  } else {
+    show('view');
+    await renderView();
+  }
+}
+
+function prevQ(){
+  S.answers[S.currentQ] = document.getElementById('q-answer').value.trim();
+  if(S.currentQ>0){S.currentQ--;renderQuestion();}
+}
+
+function goToQuestions(){show('question');renderQuestion();}
+function goToView(){show('view');renderView();}
+
+// ═══════════════════════════════════════════
+// VIEW
+// ═══════════════════════════════════════════
+function switchTab(tab){
+  S.viewTab=tab;
+  ['all','att','int','dec','map'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+  });
+  // Clear notification badge on map tab
+  if(tab==='map'){
+    const mapTab = document.getElementById('tab-map');
+    if(mapTab){ mapTab.textContent='Mapa IA'; mapTab.style.color=''; }
+    renderMap();
+  } else {
+    renderView();
+  }
+}
+
+async function refreshView(){
+  const btn = document.getElementById('refresh-btn');
+  btn.innerHTML='<span class="spinner"></span>';
+  await renderView();
+  btn.innerHTML='↺';
+}
+
+async function loadAllAnswers(){
+  const snap = await db.ref(`sessions/${S.sessionId}/answers`).get();
+  return snap.val()||{};
+}
+
+async function renderView(){
+  const container = document.getElementById('view-content');
+  container.innerHTML = '<div class="empty"><span class="spinner"></span> Cargando…</div>';
+  const all = await loadAllAnswers();
+
+  // Stats
+  const stats = document.getElementById('view-stats');
+  stats.innerHTML = ['student','tutor','mentor'].map(r=>{
+    const count = all[r] ? Object.keys(all[r]).length : 0;
+    return `<div class="stat"><div class="stat-n">${count}/${QUESTIONS.length}</div><div class="stat-l">${ROLES[r].split(' ')[0]}</div></div>`;
+  }).join('');
+
+  if(S.viewTab==='map'){renderMap();return;}
+
+  const phases = S.viewTab==='all' ? ['att','int','dec'] : [S.viewTab];
+  let html = '';
+
+  for(const phase of phases){
+    const qs = QUESTIONS.filter(q=>q.phase===phase);
+    for(const q of qs){
+      const bubbles = ['student','tutor','mentor'].map(role=>{
+        const ans = all[role]?.[q.id]?.text;
+        if(!ans) return '';
+        return `<div class="bubble ${BUBBLE_CLASS[role]}">
+          <div class="bubble-label">${ROLES[role]}</div>
+          <div>${ans}</div>
+        </div>`;
+      }).join('');
+      const hasAny = bubbles.trim().length>0;
+      html += `<div class="card">
+        <span class="phase ${PHASE_CLASS[q.phase]}">${q.phaseLabel}</span>
+        <span class="qtype ${TYPE_CLASS[q.type]}" style="margin-left:6px">${q.typeLabel}</span>
+        <p style="font-size:13px;color:var(--text2);margin:6px 0 8px">${q.text}</p>
+        ${hasAny ? bubbles : '<div class="empty" style="padding:.5rem">Sin respuestas aún</div>'}
+      </div>`;
+    }
+  }
+  container.innerHTML = html || '<div class="empty">No hay respuestas en esta vista.</div>';
+}
+
+// ═══════════════════════════════════════════
+// AI MAP — calls Anthropic API
+// ═══════════════════════════════════════════
+async function renderMap(){
+  const container = document.getElementById('view-content');
+
+  // Check if map already exists in Firebase (another device may have generated it)
+  const cached = await db.ref('sessions/'+S.sessionId+'/map').get();
+  if(cached.val()?.result){
+    const all = await loadAllAnswers();
+    renderMapVisual(cached.val().result, all);
+    return;
+  }
+
+  container.innerHTML = '<div class="card">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">'
+    + '<span class="spinner"></span>'
+    + '<span style="font-size:14px;color:var(--text2)">Analizando respuestas con IA…</span>'
+    + '</div>'
+    + '<p class="muted" style="font-size:12px">La IA ubica cada respuesta en ALACT × Noticing e infiere la práctica científica subyacente.</p>'
+    + '</div>';
+
+  const all = await loadAllAnswers();
+
+  // Build prompt
+  let answersText = '';
+  for(const role of ['student','tutor','mentor']){
+    if(!all[role]) continue;
+    answersText += `\n\n## ${ROLES[role].toUpperCase()}\n`;
+    for(const q of QUESTIONS){
+      const ans = all[role]?.[q.id]?.text;
+      if(ans) answersText += `\n[${q.phaseLabel} · ${q.typeLabel}]\n${ans}\n`;
+    }
+  }
+
+  if(!answersText.trim()){
+    container.innerHTML='<div class="empty">No hay respuestas suficientes para generar el mapa.</div>';
+    return;
+  }
+
+  const systemPrompt = `Eres un analista experto en noticing docente (Jacobs et al., 2010), el modelo ALACT de reflexión (Korthagen, 2001) y formación inicial de profesores de ciencias naturales.
+
+Tu tarea es analizar las respuestas de una tríada formativa (estudiante en formación, tutor universitario, profesor mentor) a una bitácora de noticing reflexivo sobre un episodio pedagógico en el aula de ciencias.
+
+## MARCO CONCEPTUAL CRÍTICO
+
+El instrumento tiene tres tipos de preguntas por cada dimensión de noticing (Atender / Interpretar / Decidir):
+- **Lectura (L)**: pide describir lo que dice la bitácora del estudiante. Opera principalmente en las fases ALACT de "Acción" (describe lo ocurrido) y "Looking Back" (reconstruye el episodio desde el texto). Es el nivel más descriptivo.
+- **Reflexiva (R)**: pide al actor posicionarse desde su propio rol y hacer un "noticing del noticing" — reflexionar sobre su propio proceso de atender/interpretar/decidir. Opera principalmente en "Awareness" (toma de conciencia de la propia mirada) y "Alternatives" (cuando propone perspectivas distintas). Es el nivel meta-reflexivo.
+- **Dialógica (D)**: pide formular una pregunta hacia otro actor de la tríada. Activa el movimiento reflexivo triádico. Opera en "Alternatives" (cuando la pregunta propone alternativas) o "Trial" (cuando proyecta hacia la acción futura). Una pregunta dialógica superficial puede quedarse en "Looking Back".
+
+## CRITERIOS DE ASIGNACIÓN ALACT
+
+Asigna la fase ALACT según el CONTENIDO de la respuesta, no solo el tipo de pregunta:
+- **Acción**: describe hechos del episodio sin distancia reflexiva. "El estudiante hizo X."
+- **Looking Back**: reconstruye lo ocurrido con algo de distancia. "Lo que describe la bitácora es... / Noto que en ese momento..."
+- **Awareness**: toma conciencia de por qué notó eso y no otra cosa, o de la brecha entre lo esperado y lo ocurrido. "Me llama la atención porque desde mi posición como tutor... / Esto me hace ver que..."
+- **Alternatives**: genera perspectivas alternativas, cuestiona supuestos, propone marcos distintos. "Podría interpretarse también como... / Si en cambio..."
+- **Trial**: proyecta hacia acción futura concreta y fundamentada en lo reflexionado. "La próxima vez haría... porque esto me mostró que..."
+
+Una respuesta a una pregunta Reflexiva (R) que solo describe hechos sin distancia crítica debe asignarse a "Looking Back", no a "Awareness". El tipo de pregunta es una señal, no una garantía.
+
+## MOVIMIENTO REFLEXIVO
+
+Detecta si una respuesta muestra movimiento entre dimensiones de noticing (ej. alguien que en una pregunta de Atender ya está Interpretando o Decidiendo). Esto es metodológicamente relevante: indica que ese actor tiene mayor integración entre las tres habilidades de noticing (Jacobs et al., 2010).
+
+## PRÁCTICA CIENTÍFICA
+
+Infiere la práctica científica subyacente al episodio pedagógico desde el contenido de las respuestas:
+- **Indagación**: el episodio involucra preguntas, hipótesis, experimentos, búsqueda de evidencia.
+- **Modelización**: el episodio involucra construcción, uso o evaluación de modelos explicativos.
+- **Argumentación**: el episodio involucra justificación de afirmaciones, uso de evidencia para convencer, debate.
+- **No identificable**: las respuestas no permiten inferir la práctica con certeza.
+
+Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructura exacta:
+{
+  "nodes": [
+    {
+      "role": "student|tutor|mentor",
+      "qid": "att-L|att-R|att-D|int-L|int-R|int-D|dec-L|dec-R|dec-D",
+      "qtype": "L|R|D",
+      "alact": "Acción|Looking Back|Awareness|Alternatives|Trial",
+      "alact_rationale": "una frase breve que justifica por qué esta fase y no otra",
+      "noticing": "Atender|Interpretar|Decidir",
+      "practice": "Indagación|Modelización|Argumentación|No identificable",
       "movement": true|false,
       "movement_to": "Atender|Interpretar|Decidir|null",
       "reflexive_depth": "descriptivo|analítico|crítico",
@@ -611,6 +1031,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 
   try {
     const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
+
     const response = await fetch(WORKER_URL, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
@@ -707,7 +1128,7 @@ function renderMapVisual(result, all){
     + '<span class="map-node node-student">Estudiante</span>'
     + '<span class="map-node node-tutor">Tutor</span>'
     + '<span class="map-node node-mentor">Mentor</span>'
-    + '<span class="muted" style="font-size:11px;margin-left:4px">Ind · Mod · Arg · NoS = práctica inferida</span>'
+    + '<span class="muted" style="font-size:11px;margin-left:4px">Ind · Mod · Arg = práctica inferida</span>'
     + '</div>'
     + gridHtml
     + '</div>';

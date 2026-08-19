@@ -2,148 +2,231 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Noticing Triádico — PUCV</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --purple:#7F77DD;--purple-light:#EEEDFE;--purple-dark:#3C3489;
-  --teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#085041;
-  --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#633806;
-  --gray:#888780;--gray-light:#F1EFE8;--gray-dark:#2C2C2A;
-  --bg:#ffffff;--bg2:#f7f6f2;--border:#e0dfd8;
-  --text:#1a1a18;--text2:#5f5e5a;--text3:#9c9a92;
-  --radius:10px;--radius-sm:6px;
+  --purple:#6C65D9;--purple-light:#EEEDFE;--purple-dark:#3C3489;--purple-mid:#AFA9EC;
+  --teal:#1A9870;--teal-light:#E1F5EE;--teal-dark:#085041;--teal-mid:#5DCAA5;
+  --amber:#B07010;--amber-light:#FDF0D5;--amber-dark:#5C3300;--amber-mid:#E09830;
+  --bg:#FAFAF8;--bg2:#F2F1EC;--bg3:#E8E7E0;
+  --border:#DDDCD4;--border2:#C8C7BE;
+  --text:#18181A;--text2:#58585A;--text3:#9A9A92;
+  --radius:12px;--radius-sm:8px;--radius-xs:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg2);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
-.screen{display:none;max-width:680px;margin:0 auto;padding:1.5rem 1rem}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:var(--bg2);color:var(--text);font-size:15px;line-height:1.6;
+  min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ── Layout ── */
+.screen{display:none;max-width:640px;margin:0 auto;padding:1.25rem 1rem 3rem}
 .screen.active{display:block}
-/* Cards */
-.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
-/* Buttons */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;transition:background .15s}
-.btn:hover{background:var(--bg2)}
-.btn-primary{background:var(--purple-light);color:var(--purple-dark);border-color:#AFA9EC}
-.btn-primary:hover{background:#CECBF6}
-.btn-full{width:100%;justify-content:center}
-/* Role pills */
-.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;border:0.5px solid}
-.pill-student{background:var(--purple-light);color:var(--purple-dark);border-color:#AFA9EC}
-.pill-tutor{background:var(--teal-light);color:var(--teal-dark);border-color:#5DCAA5}
-.pill-mentor{background:var(--amber-light);color:var(--amber-dark);border-color:#EF9F27}
-/* Phase tags */
-.phase{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:20px;margin-bottom:6px}
+@media(min-width:640px){.screen{padding:2rem 1.5rem 4rem}}
+
+/* ── Typography ── */
+h1{font-size:22px;font-weight:600;letter-spacing:-.02em;color:var(--text);line-height:1.3}
+h2{font-size:15px;font-weight:600;color:var(--text);margin-bottom:.4rem}
+.muted{color:var(--text3);font-size:13px}
+.label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem}
+.error{color:#C0392B;font-size:13px;margin-top:5px}
+
+/* ── Cards ── */
+.card{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);
+  padding:1.25rem;margin-bottom:.75rem;box-shadow:var(--shadow)}
+.card-accent{border-left:3px solid var(--purple);border-radius:0 var(--radius) var(--radius) 0}
+.card-teal{border-left:3px solid var(--teal);border-radius:0 var(--radius) var(--radius) 0}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:.55rem 1.1rem;border-radius:var(--radius-sm);border:0.5px solid var(--border);
+  background:#fff;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;
+  transition:all .15s;box-shadow:var(--shadow);white-space:nowrap}
+.btn:hover{background:var(--bg2);border-color:var(--border2)}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--purple-light);color:var(--purple-dark);border-color:var(--purple-mid);box-shadow:none}
+.btn-primary:hover{background:#DDDCFA}
+.btn-teal{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-mid);box-shadow:none}
+.btn-teal:hover{background:#C8EDE2}
+.btn-full{width:100%}
+.btn-row{display:flex;gap:8px;margin-top:.75rem}
+.btn-row .btn{flex:1}
+
+/* ── Role pills ── */
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+  padding:3px 10px;border-radius:20px;border:0.5px solid;letter-spacing:.01em}
+.pill-student{background:var(--purple-light);color:var(--purple-dark);border-color:var(--purple-mid)}
+.pill-tutor{background:var(--teal-light);color:var(--teal-dark);border-color:var(--teal-mid)}
+.pill-mentor{background:var(--amber-light);color:var(--amber-dark);border-color:var(--amber-mid)}
+
+/* ── Phase tags ── */
+.phase{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 9px;border-radius:20px;margin-bottom:4px}
 .phase-att{background:#E6F1FB;color:#0C447C}
 .phase-int{background:var(--teal-light);color:var(--teal-dark)}
 .phase-dec{background:var(--amber-light);color:var(--amber-dark)}
-/* Question type badge */
-.qtype{display:inline-block;font-size:11px;padding:1px 8px;border-radius:4px;margin-bottom:4px;font-weight:500}
-.qtype-L{background:#F1EFE8;color:#5F5E5A}
+.phase-shared{background:var(--teal-light);color:var(--teal-dark)}
+
+/* ── Question type badge ── */
+.qtype{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;
+  border-radius:4px;margin-bottom:2px;letter-spacing:.03em}
+.qtype-L{background:var(--bg2);color:var(--text2);border:0.5px solid var(--border)}
 .qtype-R{background:var(--purple-light);color:var(--purple-dark)}
 .qtype-D{background:var(--teal-light);color:var(--teal-dark)}
-/* Inputs */
-input[type=text],textarea{width:100%;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .8rem;font-size:14px;font-family:inherit;color:var(--text);background:var(--bg);resize:vertical}
-input[type=text]:focus,textarea:focus{outline:none;border-color:var(--purple)}
-textarea{min-height:100px}
-/* Progress */
-.progress{height:3px;background:var(--bg2);border-radius:2px;margin-bottom:1rem;overflow:hidden}
-.progress-fill{height:100%;background:var(--purple);border-radius:2px;transition:width .4s}
-/* Steps */
-.steps{display:flex;gap:5px;margin-bottom:1rem;flex-wrap:wrap}
-.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
-.step-pending{background:var(--bg2);color:var(--text3);border:0.5px solid var(--border)}
-.step-active{background:var(--purple-light);color:var(--purple-dark);border:0.5px solid #AFA9EC}
-.step-done{background:var(--teal-light);color:var(--teal-dark);border:0.5px solid #5DCAA5}
-/* Answer bubbles */
-.bubble{border-radius:var(--radius-sm);padding:.8rem 1rem;margin-top:8px;font-size:14px;line-height:1.6;border-left:3px solid}
+
+/* ── Inputs ── */
+input[type=text],textarea{
+  width:100%;border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.65rem .85rem;font-size:14px;font-family:inherit;color:var(--text);
+  background:#fff;resize:vertical;transition:border-color .15s;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.03)}
+input[type=text]:focus,textarea:focus{outline:none;border-color:var(--purple);
+  box-shadow:0 0 0 3px rgba(108,101,217,.12)}
+textarea{min-height:110px;line-height:1.6}
+
+/* ── Progress ── */
+.progress-wrap{margin-bottom:1.25rem}
+.progress{height:3px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:var(--purple);border-radius:2px;transition:width .4s ease}
+.progress-label{display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:.4rem;font-size:12px;color:var(--text3)}
+
+/* ── Step dots ── */
+.steps{display:flex;gap:4px;flex-wrap:wrap}
+.step-dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;transition:all .2s}
+.step-pending{background:var(--bg3);color:var(--text3)}
+.step-active{background:var(--purple);color:#fff;box-shadow:0 0 0 3px rgba(108,101,217,.2)}
+.step-done{background:var(--teal-light);color:var(--teal-dark);border:1px solid var(--teal-mid)}
+
+/* ── Answer bubbles ── */
+.bubble{border-radius:var(--radius-sm);padding:.85rem 1rem;margin-top:8px;
+  font-size:14px;line-height:1.65;border-left:3px solid}
 .bubble-student{background:var(--purple-light);border-color:var(--purple)}
 .bubble-tutor{background:var(--teal-light);border-color:var(--teal)}
 .bubble-mentor{background:var(--amber-light);border-color:var(--amber)}
-.bubble-label{font-size:11px;font-weight:600;margin-bottom:4px;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
-/* Map nodes */
-.map-grid{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;font-size:12px;margin-bottom:1rem}
-.map-cell{background:var(--bg);padding:.5rem .6rem;min-height:44px}
-.map-header{background:var(--bg2);font-weight:600;font-size:11px;color:var(--text2);display:flex;align-items:center;justify-content:center;text-align:center}
-.map-phase{background:var(--bg2);font-weight:600;font-size:11px;color:var(--text2);display:flex;align-items:center;padding:.5rem .6rem}
-.map-node{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;margin:2px;cursor:default}
+.bubble-label{font-size:10px;font-weight:700;margin-bottom:5px;
+  letter-spacing:.06em;text-transform:uppercase;opacity:.6}
+
+/* ── Map grid ── */
+.map-grid{display:grid;grid-template-columns:72px repeat(3,1fr);gap:1px;
+  background:var(--border);border-radius:var(--radius);overflow:hidden;
+  font-size:11px;margin-bottom:.75rem}
+.map-cell{background:#fff;padding:.45rem .5rem;min-height:48px}
+.map-header{background:var(--bg2);font-weight:700;font-size:10px;color:var(--text2);
+  display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:.4rem .4rem;letter-spacing:.03em;text-transform:uppercase}
+.map-phase{background:var(--bg2);font-weight:600;font-size:10px;color:var(--text2);
+  display:flex;align-items:center;padding:.45rem .5rem;line-height:1.3;letter-spacing:.02em}
+.map-node{display:inline-flex;align-items:center;gap:2px;font-size:10px;font-weight:600;
+  padding:2px 6px;border-radius:20px;margin:2px;cursor:default;line-height:1.4}
 .node-student{background:var(--purple-light);color:var(--purple-dark)}
 .node-tutor{background:var(--teal-light);color:var(--teal-dark)}
 .node-mentor{background:var(--amber-light);color:var(--amber-dark)}
-/* AI analysis */
-.ai-block{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:.9rem 1rem;font-size:13px;line-height:1.7;color:var(--text2);white-space:pre-wrap}
-/* Lobby members */
-.member-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border)}
-.member-row:last-child{border-bottom:none}
-/* Session code */
-.session-code{font-size:32px;font-weight:600;letter-spacing:.18em;color:var(--purple-dark);font-family:monospace;text-align:center;padding:.5rem}
-/* Stat cards */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
-.stat{background:var(--bg2);border-radius:var(--radius-sm);padding:.6rem;text-align:center}
-.stat-n{font-size:22px;font-weight:600;color:var(--text)}
-.stat-l{font-size:11px;color:var(--text3)}
-/* Tabs */
-.tabs{display:flex;gap:4px;margin-bottom:1rem}
-.tab{flex:1;padding:.4rem;font-size:13px;text-align:center;cursor:pointer;border-radius:var(--radius-sm);border:0.5px solid var(--border);color:var(--text2)}
-.tab.active{background:var(--purple-light);color:var(--purple-dark);border-color:#AFA9EC;font-weight:500}
-/* Role selector */
-.role-btn{display:flex;align-items:center;gap:10px;width:100%;padding:.8rem 1rem;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;margin-bottom:8px;transition:background .15s}
-.role-btn:hover{background:var(--bg2)}
-.role-btn.selected{border-color:var(--purple);background:var(--purple-light)}
-/* Divider */
-.divider{height:0.5px;background:var(--border);margin:1rem 0}
-/* Nav */
-.nav{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem}
-.nav-back{padding:.3rem .6rem}
-.nav-title{font-size:14px;color:var(--text2)}
-.nav-right{margin-left:auto}
-/* Helper */
-.empty{text-align:center;color:var(--text3);font-size:13px;padding:1.5rem}
-.label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
-h1{font-size:20px;font-weight:600;color:var(--text);margin-bottom:.25rem}
-h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
-.muted{color:var(--text3);font-size:13px}
-.error{color:#A32D2D;font-size:13px;margin-top:4px}
-/* Loading spinner */
-@keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
-/* Custom tooltip */
+
+/* ── Custom tooltip ── */
 .tt{position:relative;cursor:default}
-.tt .tt-text{visibility:hidden;opacity:0;background:var(--gray-dark);color:#fff;font-size:11px;line-height:1.5;border-radius:6px;padding:6px 9px;position:absolute;z-index:999;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);width:220px;white-space:normal;pointer-events:none;transition:opacity .15s;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.tt .tt-text{visibility:hidden;opacity:0;background:#18181A;color:#fff;font-size:11px;
+  line-height:1.5;border-radius:var(--radius-xs);padding:6px 9px;position:absolute;
+  z-index:999;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  width:200px;white-space:normal;pointer-events:none;transition:opacity .15s;
+  box-shadow:var(--shadow-md)}
 .tt:hover .tt-text,.tt:focus .tt-text{visibility:visible;opacity:1}
+
+/* ── Lobby members ── */
+.member-row{display:flex;align-items:center;gap:8px;padding:8px 0;
+  border-bottom:0.5px solid var(--border)}
+.member-row:last-child{border-bottom:none}
+
+/* ── Session code ── */
+.session-code{font-size:36px;font-weight:700;letter-spacing:.2em;color:var(--purple-dark);
+  font-family:ui-monospace,monospace;text-align:center;padding:.5rem;line-height:1}
+
+/* ── Stats ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.75rem}
+.stat{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius-sm);
+  padding:.65rem;text-align:center;box-shadow:var(--shadow)}
+.stat-n{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.stat-l{font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:3px;margin-bottom:.75rem;background:var(--bg3);
+  padding:3px;border-radius:var(--radius-sm)}
+.tab{flex:1;padding:.38rem .3rem;font-size:12px;font-weight:500;text-align:center;
+  cursor:pointer;border-radius:var(--radius-xs);color:var(--text3);transition:all .15s;
+  white-space:nowrap}
+.tab.active{background:#fff;color:var(--purple-dark);font-weight:600;
+  box-shadow:var(--shadow)}
+
+/* ── Role selector ── */
+.role-btn{display:flex;align-items:center;gap:12px;width:100%;padding:.9rem 1rem;
+  border:1px solid var(--border);border-radius:var(--radius-sm);background:#fff;
+  cursor:pointer;margin-bottom:8px;transition:all .15s;box-shadow:var(--shadow)}
+.role-btn:hover{background:var(--bg2);border-color:var(--border2)}
+.role-btn.selected{border-color:var(--purple);background:var(--purple-light);
+  box-shadow:0 0 0 3px rgba(108,101,217,.12)}
+.role-desc{font-size:13px;color:var(--text3);margin-top:1px}
+
+/* ── Nav ── */
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem}
+.nav-back{padding:.3rem .6rem;font-size:13px}
+.nav-title{font-size:13px;color:var(--text2);font-weight:500}
+.nav-right{margin-left:auto}
+
+/* ── Divider ── */
+.divider{height:0.5px;background:var(--border);margin:1rem 0}
+
+/* ── Empty state ── */
+.empty{text-align:center;color:var(--text3);font-size:13px;padding:1.5rem}
+
+/* ── Header block ── */
+.app-header{padding:.75rem 0 1.25rem}
+.app-eyebrow{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:.35rem}
+
+/* ── Spinner ── */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:16px;height:16px;border:2px solid var(--border);
+  border-top-color:var(--purple);border-radius:50%;
+  animation:spin .7s linear infinite;display:inline-block;flex-shrink:0}
+
+/* ── Notification dot ── */
+.notif{display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--teal);margin-left:3px;vertical-align:middle}
 </style>
 </head>
 <body>
-
-<!-- ═══════════════════════════════════════════
-     SCREEN: HOME
-═══════════════════════════════════════════ -->
+<!-- HOME -->
 <div id="screen-home" class="screen active">
-  <div style="margin-bottom:1.5rem;padding-top:.5rem">
-    <p class="muted" style="margin-bottom:.25rem">PUCV · Instituto de Química</p>
-    <h1>Noticing triádico reflexivo</h1>
-    <p class="muted">Bitácora colaborativa · Práctica Docente Final</p>
+  <div class="app-header">
+    <p class="app-eyebrow">PUCV · Instituto de Química</p>
+    <h1>Noticing triádico</h1>
+    <p class="muted" style="margin-top:.25rem">Bitácora colaborativa · Práctica Docente Final</p>
   </div>
 
   <div class="card">
-    <p class="label">¿Cuál es tu rol en la tríada?</p>
+    <p class="label">Tu rol en la tríada</p>
     <button class="role-btn" id="btn-student" onclick="selectRole('student')">
-      <span class="pill pill-student">Estudiante en formación</span>
-      <span class="muted" style="font-size:13px">Profesor/a en práctica final</span>
+      <span class="pill pill-student">Estudiante</span>
+      <span class="role-desc">Profesor/a en práctica final</span>
     </button>
     <button class="role-btn" id="btn-tutor" onclick="selectRole('tutor')">
       <span class="pill pill-tutor">Tutor universitario</span>
-      <span class="muted" style="font-size:13px">Académico/a PUCV</span>
+      <span class="role-desc">Académico/a PUCV</span>
     </button>
     <button class="role-btn" id="btn-mentor" onclick="selectRole('mentor')">
       <span class="pill pill-mentor">Profesor mentor</span>
-      <span class="muted" style="font-size:13px">Docente co-formador/a</span>
+      <span class="role-desc">Docente co-formador/a</span>
     </button>
   </div>
 
   <div class="card">
-    <p class="label">Código de sesión triádica</p>
-    <div style="display:flex;gap:8px;margin-bottom:.75rem">
-      <input type="text" id="session-input" placeholder="Ej: T2-Q3" maxlength="8" style="font-family:monospace;letter-spacing:.1em;text-transform:uppercase">
+    <p class="label">Código de sesión</p>
+    <div style="display:flex;gap:8px;margin-bottom:.5rem">
+      <input type="text" id="session-input" placeholder="Ej: T2-B3" maxlength="8"
+        style="font-family:ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase">
       <button class="btn" onclick="joinSession()">Unirse</button>
     </div>
     <p id="home-error" class="error" style="display:none"></p>
@@ -152,67 +235,96 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     SCREEN: LOBBY
-═══════════════════════════════════════════ -->
+<!-- LOBBY -->
 <div id="screen-lobby" class="screen">
   <div class="nav">
     <button class="btn nav-back" onclick="goHome()">← Volver</button>
     <span class="nav-title">Sala de espera</span>
   </div>
 
-  <div class="card" style="text-align:center">
-    <p class="muted" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.25rem">Código de sesión</p>
+  <div class="card" style="text-align:center;padding:1.5rem">
+    <p class="app-eyebrow" style="text-align:center">Código de sesión</p>
     <div class="session-code" id="lobby-code">—</div>
-    <p class="muted" style="font-size:12px">Comparte este código con los demás miembros</p>
+    <p class="muted" style="margin-top:.5rem">Comparte este código con los demás</p>
   </div>
 
   <div class="card">
-    <h2>Conectados</h2>
+    <p class="label">Conectados</p>
     <div id="lobby-members"><div class="empty">Esperando participantes…</div></div>
     <div class="divider"></div>
-    <p class="muted" style="font-size:12px;margin-bottom:.75rem">El estudiante debe relatar el episodio pedagógico antes de iniciar.</p>
-    <button class="btn btn-primary btn-full" onclick="startSession()">Iniciar reflexión triádica →</button>
+    <p class="muted" style="font-size:12px;margin-bottom:.75rem">El estudiante relata el episodio antes de iniciar.</p>
+    <button class="btn btn-teal btn-full" onclick="startSession()">Iniciar reflexión triádica →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     SCREEN: QUESTION
-═══════════════════════════════════════════ -->
+<!-- QUESTION -->
 <div id="screen-question" class="screen">
   <div class="nav">
     <div id="q-pill"></div>
-    <span class="nav-title" id="q-session-label"></span>
-    <button class="btn nav-right" onclick="goToView()">Ver respuestas →</button>
+    <span class="nav-title" id="q-session-label" style="margin-left:4px"></span>
+    <button class="btn nav-right" style="font-size:13px" onclick="goToView()">Ver →</button>
   </div>
 
-  <div class="progress"><div class="progress-fill" id="q-progress"></div></div>
-
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:1rem">
-    <div class="steps" id="q-steps"></div>
-    <span class="muted" id="q-counter" style="margin-left:auto;font-size:12px"></span>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <div class="steps" id="q-steps"></div>
+      <span id="q-counter"></span>
+    </div>
+    <div class="progress"><div class="progress-fill" id="q-progress"></div></div>
   </div>
 
   <div class="card" id="q-card">
-    <div id="q-phase-tag"></div>
-    <div id="q-type-badge"></div>
-    <p style="font-size:15px;font-weight:500;margin-bottom:1rem" id="q-text"></p>
-    <textarea id="q-answer" placeholder="Escribe tu respuesta aquí…"></textarea>
-    <div style="display:flex;justify-content:space-between;margin-top:.75rem">
+    <div style="margin-bottom:.6rem">
+      <span id="q-phase-tag"></span>
+      <span id="q-type-badge" style="margin-left:5px"></span>
+    </div>
+    <p style="font-size:15px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:var(--text)" id="q-text"></p>
+    <textarea id="q-answer" placeholder="Escribe tu respuesta…"></textarea>
+    <div class="btn-row">
       <button class="btn" id="q-prev" onclick="prevQ()">← Anterior</button>
       <button class="btn btn-primary" id="q-next" onclick="nextQ()">Siguiente →</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     SCREEN: VIEW (collaborative)
-═══════════════════════════════════════════ -->
+<!-- SHARED QUESTION -->
+<div id="screen-shared" class="screen">
+  <div class="nav">
+    <div id="sq-pill"></div>
+    <span class="nav-title" id="sq-session-label" style="margin-left:4px"></span>
+  </div>
+
+  <div class="card card-teal">
+    <div style="margin-bottom:.6rem">
+      <span class="phase phase-shared">Dialógica compartida</span>
+      <span class="qtype qtype-D" style="margin-left:5px">Para abrir la discusión</span>
+    </div>
+    <p style="font-size:15px;font-weight:500;line-height:1.5;margin-bottom:1rem;color:var(--text)">
+      Habiendo atendido, interpretado y decidido sobre este episodio — ¿qué pregunta o sugerencia le harías a otro miembro de la tríada para abrir la discusión?
+    </p>
+    <textarea id="sq-answer" placeholder="Escribe tu pregunta o sugerencia…"></textarea>
+    <div class="btn-row">
+      <button class="btn" onclick="backToIndividual()">← Anterior</button>
+      <button class="btn btn-teal" onclick="submitShared()">Guardar y ver →</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="label">Respuestas de la tríada</p>
+    <p class="muted" style="font-size:12px;margin-bottom:.65rem">Se actualizan en tiempo real</p>
+    <div id="sq-responses"><div class="empty">Esperando respuestas…</div></div>
+    <div style="margin-top:.75rem">
+      <button class="btn btn-full" onclick="goToView()">Ver todas las respuestas →</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW -->
 <div id="screen-view" class="screen">
   <div class="nav">
     <button class="btn nav-back" onclick="goToQuestions()">← Responder</button>
     <span class="nav-title">Vista colaborativa</span>
-    <button class="btn nav-right" onclick="refreshView()" id="refresh-btn">↺</button>
+    <button class="btn nav-right" onclick="refreshView()" id="refresh-btn" style="font-size:15px">↺</button>
   </div>
 
   <div class="stats" id="view-stats"></div>
@@ -228,52 +340,9 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
   <div id="view-content"></div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     SCREEN: MAP (AI-generated trajectory)
-═══════════════════════════════════════════ -->
-<div id="screen-map" class="screen">
-  <div class="nav">
-    <button class="btn nav-back" onclick="goToView()">← Vista</button>
-    <span class="nav-title">Mapa de trayectoria</span>
-    <button class="btn nav-right" onclick="exportSession()">↓ Exportar</button>
-  </div>
-  <div id="map-content"></div>
-</div>
-
-<!-- ═══════════════════════════════════════════
-     SCREEN: SHARED QUESTION
-═══════════════════════════════════════════ -->
-<div id="screen-shared" class="screen">
-  <div class="nav">
-    <div id="sq-pill"></div>
-    <span class="nav-title" id="sq-session-label"></span>
-  </div>
-
-  <div class="card" style="border-left:3px solid var(--teal);border-radius:0 var(--radius) var(--radius) 0">
-    <span class="phase phase-dec" style="background:#E1F5EE;color:var(--teal-dark)">Dialógica compartida</span>
-    <span class="qtype qtype-D" style="margin-left:6px">Para abrir la discusión</span>
-    <p style="font-size:15px;font-weight:500;margin:10px 0 1rem">Habiendo atendido, interpretado y decidido sobre este episodio — ¿qué pregunta o sugerencia le harías a otro miembro de la tríada para abrir la discusión?</p>
-    <textarea id="sq-answer" placeholder="Escribe tu pregunta o sugerencia…"></textarea>
-    <div style="display:flex;justify-content:space-between;margin-top:.75rem">
-      <button class="btn" onclick="backToIndividual()">← Anterior</button>
-      <button class="btn btn-primary" onclick="submitShared()">Guardar y ver respuestas →</button>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:.5rem">
-    <p class="label">Respuestas de la tríada</p>
-    <p class="muted" style="font-size:12px;margin-bottom:.75rem">Se actualizan en tiempo real mientras los demás responden</p>
-    <div id="sq-responses"><div class="empty">Esperando respuestas…</div></div>
-    <div style="margin-top:.75rem">
-      <button class="btn btn-full" onclick="goToView()">Ver todas las respuestas →</button>
-    </div>
-  </div>
-</div>
-
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
-
 <script>
 // ═══════════════════════════════════════════
 // FIREBASE CONFIG
@@ -685,7 +754,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 }`;
 
   try {
-    const WORKER_URL = 'PASTE_YOUR_WORKER_URL_HERE';
+    const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
 
     const response = await fetch(WORKER_URL, {
       method:'POST',
@@ -1157,7 +1226,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 }`;
 
   try {
-    const WORKER_URL = 'PASTE_YOUR_WORKER_URL_HERE';
+    const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
 
     const response = await fetch(WORKER_URL, {
       method:'POST',
@@ -1324,4 +1393,6 @@ setInterval(()=>{
 },15000);
 </script>
 </body>
+</html>
+
 </html>

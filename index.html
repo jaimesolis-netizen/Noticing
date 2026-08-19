@@ -240,6 +240,36 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
   <div id="map-content"></div>
 </div>
 
+<!-- ═══════════════════════════════════════════
+     SCREEN: SHARED QUESTION
+═══════════════════════════════════════════ -->
+<div id="screen-shared" class="screen">
+  <div class="nav">
+    <div id="sq-pill"></div>
+    <span class="nav-title" id="sq-session-label"></span>
+  </div>
+
+  <div class="card" style="border-left:3px solid var(--teal);border-radius:0 var(--radius) var(--radius) 0">
+    <span class="phase phase-dec" style="background:#E1F5EE;color:var(--teal-dark)">Dialógica compartida</span>
+    <span class="qtype qtype-D" style="margin-left:6px">Para abrir la discusión</span>
+    <p style="font-size:15px;font-weight:500;margin:10px 0 1rem">Habiendo atendido, interpretado y decidido sobre este episodio — ¿qué pregunta o sugerencia le harías a otro miembro de la tríada para abrir la discusión?</p>
+    <textarea id="sq-answer" placeholder="Escribe tu pregunta o sugerencia…"></textarea>
+    <div style="display:flex;justify-content:space-between;margin-top:.75rem">
+      <button class="btn" onclick="backToIndividual()">← Anterior</button>
+      <button class="btn btn-primary" onclick="submitShared()">Guardar y ver respuestas →</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:.5rem">
+    <p class="label">Respuestas de la tríada</p>
+    <p class="muted" style="font-size:12px;margin-bottom:.75rem">Se actualizan en tiempo real mientras los demás responden</p>
+    <div id="sq-responses"><div class="empty">Esperando respuestas…</div></div>
+    <div style="margin-top:.75rem">
+      <button class="btn btn-full" onclick="goToView()">Ver todas las respuestas →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -249,13 +279,13 @@ h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
 // FIREBASE CONFIG
 // ═══════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "AIzaSyAzR0XcOYioyYUW68LSmcPNOCOtkevJXG8",
+  apiKey: "PASTE_YOUR_FIREBASE_KEY_HERE",
   authDomain: "noticing-663b2.firebaseapp.com",
   databaseURL: "https://noticing-663b2-default-rtdb.firebaseio.com",
   projectId: "noticing-663b2",
   storageBucket: "noticing-663b2.appspot.com",
-  messagingSenderId: "115663214141",
-  appId: "1:115663214141:web:9e44ad0638e8d85950fc54"
+  messagingSenderId: "PASTE_YOUR_SENDER_ID",
+  appId: "PASTE_YOUR_APP_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
@@ -269,23 +299,24 @@ const QUESTIONS = [
    text:'¿Qué acciones, palabras o decisiones concretas —del estudiante en formación o de sus alumnos— describe la bitácora en este episodio?'},
   {id:'att-R', phase:'att', phaseLabel:'Atender', type:'R', typeLabel:'Reflexiva',
    text:'¿Qué detalle del episodio te pareció pedagógicamente significativo desde tu posición en la tríada, y por qué ese detalle y no otro?'},
-  {id:'att-D', phase:'att', phaseLabel:'Atender', type:'D', typeLabel:'Dialógica',
-   text:'¿Qué le preguntarías a otro miembro de la tríada sobre lo que notó en este episodio?'},
   // ── INTERPRETAR ──
   {id:'int-L', phase:'int', phaseLabel:'Interpretar', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué explicación o sentido le da el estudiante en su bitácora a lo que ocurrió? ¿Qué conecta con el aprendizaje de ciencias?'},
   {id:'int-R', phase:'int', phaseLabel:'Interpretar', type:'R', typeLabel:'Reflexiva',
    text:'¿Cómo interpretas tú ese episodio? ¿En qué tu lectura coincide o difiere de la del estudiante, y qué lo explica?'},
-  {id:'int-D', phase:'int', phaseLabel:'Interpretar', type:'D', typeLabel:'Dialógica',
-   text:'¿Qué le preguntarías a otro miembro de la tríada sobre cómo interpreta lo ocurrido?'},
   // ── DECIDIR ──
   {id:'dec-L', phase:'dec', phaseLabel:'Decidir', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué decisión pedagógica propone o anticipa el estudiante en su bitácora frente a ese episodio?'},
   {id:'dec-R', phase:'dec', phaseLabel:'Decidir', type:'R', typeLabel:'Reflexiva',
-   text:'¿Qué decidirías o recomendarías tú, y en qué se basa esa decisión en lo que el estudiante ya comprende sobre la enseñanza de las ciencias?'},
-  {id:'dec-D', phase:'dec', phaseLabel:'Decidir', type:'D', typeLabel:'Dialógica',
-   text:'¿Qué le preguntarías a otro miembro de la tríada sobre qué haría o recomendaría frente a este episodio?'}
+   text:'¿Qué decidirías o recomendarías tú, y en qué se basa esa decisión en lo que el estudiante ya comprende sobre la enseñanza de las ciencias?'}
 ];
+
+// Shared dialogic question — all three actors answer in the same field
+const SHARED_QUESTION = {
+  id:'shared-D', phase:'shared', phaseLabel:'Dialógica compartida', type:'D',
+  typeLabel:'Para abrir la discusión',
+  text:'Habiendo atendido, interpretado y decidido sobre este episodio — ¿qué pregunta o sugerencia le harías a otro miembro de la tríada para abrir la discusión?'
+};
 
 const ROLES = {student:'Estudiante', tutor:'Tutor universitario', mentor:'Profesor mentor'};
 const PILL_CLASS = {student:'pill-student', tutor:'pill-tutor', mentor:'pill-mentor'};
@@ -342,7 +373,7 @@ function joinSession(){
 // LOBBY
 // ═══════════════════════════════════════════
 async function enterLobby(){
-  await db.ref('sessions/'+S.sessionId+'/presence/'+S.role).set({
+  await db.ref('sessions_v2/'+S.sessionId+'/presence/'+S.role).set({
     role: S.role, label: ROLES[S.role], ts: Date.now()
   });
   document.getElementById('lobby-code').textContent = S.sessionId;
@@ -350,7 +381,7 @@ async function enterLobby(){
   updateLobby();
   S.lobbyInterval = setInterval(updateLobby, 4000);
   // Real-time listener: show map on ALL devices as soon as it's generated
-  db.ref('sessions/'+S.sessionId+'/map').on('value', snap=>{
+  db.ref('sessions_v2/'+S.sessionId+'/map').on('value', snap=>{
     const val = snap.val();
     if(!val || !val.result) return;
     // Only auto-show if user is on view screen and map tab
@@ -367,7 +398,7 @@ async function enterLobby(){
 }
 
 async function updateLobby(){
-  const snap = await db.ref(`sessions/${S.sessionId}/presence`).get();
+  const snap = await db.ref(`sessions_v2/${S.sessionId}/presence`).get();
   const val = snap.val() || {};
   const present = Object.keys(val);
   const el = document.getElementById('lobby-members');
@@ -407,8 +438,8 @@ function renderQuestion(){
   document.getElementById('q-answer').value = S.answers[S.currentQ]||'';
   document.getElementById('q-counter').textContent = `${S.currentQ+1} / ${total}`;
   document.getElementById('q-prev').style.visibility = S.currentQ===0?'hidden':'visible';
-  document.getElementById('q-next').textContent = S.currentQ===total-1?'Ver respuestas →':'Siguiente →';
-  const pct = Math.round((S.currentQ/(total-1))*100);
+  document.getElementById('q-next').textContent = S.currentQ===total-1?'Pregunta final →':'Siguiente →';
+  const pct = Math.round((S.currentQ/(QUESTIONS.length))*100);
   document.getElementById('q-progress').style.width = pct+'%';
   // Steps
   const dots = document.getElementById('q-steps');
@@ -424,7 +455,7 @@ async function nextQ(){
   // Save to Firebase
   const q = QUESTIONS[S.currentQ];
   if(text){
-    await db.ref(`sessions/${S.sessionId}/answers/${S.role}/${q.id}`).set({
+    await db.ref(`sessions_v2/${S.sessionId}/answers/${S.role}/${q.id}`).set({
       text, role:S.role, phase:q.phase, type:q.type, qid:q.id, ts:Date.now()
     });
   }
@@ -444,6 +475,41 @@ function prevQ(){
 
 function goToQuestions(){show('question');renderQuestion();}
 function goToView(){show('view');renderView();}
+function backToIndividual(){S.currentQ=QUESTIONS.length-1;show('question');renderQuestion();}
+
+function renderSharedQuestion(){
+  document.getElementById('sq-pill').innerHTML = '<span class="pill '+PILL_CLASS[S.role]+'">'+ROLES[S.role]+'</span>';
+  document.getElementById('sq-session-label').textContent = 'Sesión '+S.sessionId;
+  // Load existing answer if any
+  db.ref('sessions_v2/'+S.sessionId+'/answers/'+S.role+'/shared-D').get().then(snap=>{
+    if(snap.val()?.text) document.getElementById('sq-answer').value = snap.val().text;
+  });
+  // Real-time listener for all three responses
+  db.ref('sessions_v2/'+S.sessionId+'/answers').on('value', snap=>{
+    const all = snap.val()||{};
+    const el = document.getElementById('sq-responses');
+    const responses = ['student','tutor','mentor'].map(role=>{
+      const ans = all[role]?.['shared-D']?.text;
+      if(!ans) return '';
+      return '<div class="bubble '+BUBBLE_CLASS[role]+'">'
+        +'<div class="bubble-label">'+ROLES[role]+'</div>'
+        +'<div>'+ans+'</div>'
+        +'</div>';
+    }).join('');
+    el.innerHTML = responses || '<div class="empty">Esperando respuestas…</div>';
+  });
+}
+
+async function submitShared(){
+  const text = document.getElementById('sq-answer').value.trim();
+  if(text){
+    await db.ref('sessions_v2/'+S.sessionId+'/answers/'+S.role+'/shared-D').set({
+      text, role:S.role, phase:'shared', type:'D', qid:'shared-D', ts:Date.now()
+    });
+  }
+  show('view');
+  await renderView();
+}
 
 // ═══════════════════════════════════════════
 // VIEW
@@ -471,7 +537,7 @@ async function refreshView(){
 }
 
 async function loadAllAnswers(){
-  const snap = await db.ref(`sessions/${S.sessionId}/answers`).get();
+  const snap = await db.ref(`sessions_v2/${S.sessionId}/answers`).get();
   return snap.val()||{};
 }
 
@@ -482,18 +548,19 @@ async function renderView(){
 
   // Stats
   const stats = document.getElementById('view-stats');
+  const totalQ = QUESTIONS.length + 1;
   stats.innerHTML = ['student','tutor','mentor'].map(r=>{
     const count = all[r] ? Object.keys(all[r]).length : 0;
-    return `<div class="stat"><div class="stat-n">${count}/${QUESTIONS.length}</div><div class="stat-l">${ROLES[r].split(' ')[0]}</div></div>`;
+    return '<div class="stat"><div class="stat-n">'+count+'/'+totalQ+'</div><div class="stat-l">'+ROLES[r].split(' ')[0]+'</div></div>';
   }).join('');
 
   if(S.viewTab==='map'){renderMap();return;}
 
-  const phases = S.viewTab==='all' ? ['att','int','dec'] : [S.viewTab];
+  const phases = S.viewTab==='all' ? ['att','int','dec','shared'] : [S.viewTab];
   let html = '';
 
   for(const phase of phases){
-    const qs = QUESTIONS.filter(q=>q.phase===phase);
+    const qs = phase==='shared' ? [SHARED_QUESTION] : QUESTIONS.filter(q=>q.phase===phase);
     for(const q of qs){
       const bubbles = ['student','tutor','mentor'].map(role=>{
         const ans = all[role]?.[q.id]?.text;
@@ -522,7 +589,7 @@ async function renderMap(){
   const container = document.getElementById('view-content');
 
   // Check if map already exists in Firebase (another device may have generated it)
-  const cached = await db.ref('sessions/'+S.sessionId+'/map').get();
+  const cached = await db.ref('sessions_v2/'+S.sessionId+'/map').get();
   if(cached.val()?.result){
     const all = await loadAllAnswers();
     renderMapVisual(cached.val().result, all);
@@ -543,11 +610,14 @@ async function renderMap(){
   let answersText = '';
   for(const role of ['student','tutor','mentor']){
     if(!all[role]) continue;
-    answersText += `\n\n## ${ROLES[role].toUpperCase()}\n`;
+    answersText += '\n\n## '+ROLES[role].toUpperCase()+'\n';
     for(const q of QUESTIONS){
       const ans = all[role]?.[q.id]?.text;
-      if(ans) answersText += `\n[${q.phaseLabel} · ${q.typeLabel}]\n${ans}\n`;
+      if(ans) answersText += '\n['+q.phaseLabel+' · '+q.typeLabel+']\n'+ans+'\n';
     }
+    // Include shared dialogic answer
+    const sharedAns = all[role]?.['shared-D']?.text;
+    if(sharedAns) answersText += '\n[Dialógica compartida · Para abrir la discusión]\n'+sharedAns+'\n';
   }
 
   if(!answersText.trim()){
@@ -589,6 +659,8 @@ Infiere la práctica científica subyacente al episodio pedagógico desde el con
 - **Argumentación**: el episodio involucra justificación de afirmaciones, uso de evidencia para convencer, debate.
 - **No identificable**: las respuestas no permiten inferir la práctica con certeza.
 
+La pregunta 7 es **Dialógica compartida**: los tres actores responden en el mismo campo visible simultáneamente, formulando una pregunta o sugerencia para abrir la discusión triádica. Esta pregunta activa el movimiento hacia Trial en ALACT.
+
 Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructura exacta:
 {
   "nodes": [
@@ -613,7 +685,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 }`;
 
   try {
-    const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
+    const WORKER_URL = 'PASTE_YOUR_WORKER_URL_HERE';
 
     const response = await fetch(WORKER_URL, {
       method:'POST',
@@ -631,7 +703,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
     const result = JSON.parse(clean);
 
     // Save map to Firebase so all devices receive it via listener
-    await db.ref('sessions/'+S.sessionId+'/map').set({result, ts:Date.now()});
+    await db.ref('sessions_v2/'+S.sessionId+'/map').set({result, ts:Date.now()});
     renderMapVisual(result, all);
   } catch(e){
     container.innerHTML = `<div class="card"><p class="error">Error al generar el mapa: ${e.message}</p><p class="muted" style="margin-top:6px;font-size:12px">Verifica que haya respuestas suficientes e intenta de nuevo.</p><button class="btn btn-primary" style="margin-top:.75rem" onclick="renderMap()">Reintentar</button></div>`;
@@ -781,7 +853,7 @@ function renderMapVisual(result, all){
 
   container.innerHTML = html;
 
-  db.ref('sessions/'+S.sessionId+'/map').on('value', snap=>{
+  db.ref('sessions_v2/'+S.sessionId+'/map').on('value', snap=>{
     const val = snap.val();
     if(!val || !val.result) return;
     // Only auto-show if user is on view screen and map tab
@@ -798,7 +870,7 @@ function renderMapVisual(result, all){
 }
 
 async function updateLobby(){
-  const snap = await db.ref(`sessions/${S.sessionId}/presence`).get();
+  const snap = await db.ref(`sessions_v2/${S.sessionId}/presence`).get();
   const val = snap.val() || {};
   const present = Object.keys(val);
   const el = document.getElementById('lobby-members');
@@ -838,8 +910,8 @@ function renderQuestion(){
   document.getElementById('q-answer').value = S.answers[S.currentQ]||'';
   document.getElementById('q-counter').textContent = `${S.currentQ+1} / ${total}`;
   document.getElementById('q-prev').style.visibility = S.currentQ===0?'hidden':'visible';
-  document.getElementById('q-next').textContent = S.currentQ===total-1?'Ver respuestas →':'Siguiente →';
-  const pct = Math.round((S.currentQ/(total-1))*100);
+  document.getElementById('q-next').textContent = S.currentQ===total-1?'Pregunta final →':'Siguiente →';
+  const pct = Math.round((S.currentQ/(QUESTIONS.length))*100);
   document.getElementById('q-progress').style.width = pct+'%';
   // Steps
   const dots = document.getElementById('q-steps');
@@ -855,7 +927,7 @@ async function nextQ(){
   // Save to Firebase
   const q = QUESTIONS[S.currentQ];
   if(text){
-    await db.ref(`sessions/${S.sessionId}/answers/${S.role}/${q.id}`).set({
+    await db.ref(`sessions_v2/${S.sessionId}/answers/${S.role}/${q.id}`).set({
       text, role:S.role, phase:q.phase, type:q.type, qid:q.id, ts:Date.now()
     });
   }
@@ -875,6 +947,41 @@ function prevQ(){
 
 function goToQuestions(){show('question');renderQuestion();}
 function goToView(){show('view');renderView();}
+function backToIndividual(){S.currentQ=QUESTIONS.length-1;show('question');renderQuestion();}
+
+function renderSharedQuestion(){
+  document.getElementById('sq-pill').innerHTML = '<span class="pill '+PILL_CLASS[S.role]+'">'+ROLES[S.role]+'</span>';
+  document.getElementById('sq-session-label').textContent = 'Sesión '+S.sessionId;
+  // Load existing answer if any
+  db.ref('sessions_v2/'+S.sessionId+'/answers/'+S.role+'/shared-D').get().then(snap=>{
+    if(snap.val()?.text) document.getElementById('sq-answer').value = snap.val().text;
+  });
+  // Real-time listener for all three responses
+  db.ref('sessions_v2/'+S.sessionId+'/answers').on('value', snap=>{
+    const all = snap.val()||{};
+    const el = document.getElementById('sq-responses');
+    const responses = ['student','tutor','mentor'].map(role=>{
+      const ans = all[role]?.['shared-D']?.text;
+      if(!ans) return '';
+      return '<div class="bubble '+BUBBLE_CLASS[role]+'">'
+        +'<div class="bubble-label">'+ROLES[role]+'</div>'
+        +'<div>'+ans+'</div>'
+        +'</div>';
+    }).join('');
+    el.innerHTML = responses || '<div class="empty">Esperando respuestas…</div>';
+  });
+}
+
+async function submitShared(){
+  const text = document.getElementById('sq-answer').value.trim();
+  if(text){
+    await db.ref('sessions_v2/'+S.sessionId+'/answers/'+S.role+'/shared-D').set({
+      text, role:S.role, phase:'shared', type:'D', qid:'shared-D', ts:Date.now()
+    });
+  }
+  show('view');
+  await renderView();
+}
 
 // ═══════════════════════════════════════════
 // VIEW
@@ -902,7 +1009,7 @@ async function refreshView(){
 }
 
 async function loadAllAnswers(){
-  const snap = await db.ref(`sessions/${S.sessionId}/answers`).get();
+  const snap = await db.ref(`sessions_v2/${S.sessionId}/answers`).get();
   return snap.val()||{};
 }
 
@@ -913,18 +1020,19 @@ async function renderView(){
 
   // Stats
   const stats = document.getElementById('view-stats');
+  const totalQ = QUESTIONS.length + 1;
   stats.innerHTML = ['student','tutor','mentor'].map(r=>{
     const count = all[r] ? Object.keys(all[r]).length : 0;
-    return `<div class="stat"><div class="stat-n">${count}/${QUESTIONS.length}</div><div class="stat-l">${ROLES[r].split(' ')[0]}</div></div>`;
+    return '<div class="stat"><div class="stat-n">'+count+'/'+totalQ+'</div><div class="stat-l">'+ROLES[r].split(' ')[0]+'</div></div>';
   }).join('');
 
   if(S.viewTab==='map'){renderMap();return;}
 
-  const phases = S.viewTab==='all' ? ['att','int','dec'] : [S.viewTab];
+  const phases = S.viewTab==='all' ? ['att','int','dec','shared'] : [S.viewTab];
   let html = '';
 
   for(const phase of phases){
-    const qs = QUESTIONS.filter(q=>q.phase===phase);
+    const qs = phase==='shared' ? [SHARED_QUESTION] : QUESTIONS.filter(q=>q.phase===phase);
     for(const q of qs){
       const bubbles = ['student','tutor','mentor'].map(role=>{
         const ans = all[role]?.[q.id]?.text;
@@ -953,7 +1061,7 @@ async function renderMap(){
   const container = document.getElementById('view-content');
 
   // Check if map already exists in Firebase (another device may have generated it)
-  const cached = await db.ref('sessions/'+S.sessionId+'/map').get();
+  const cached = await db.ref('sessions_v2/'+S.sessionId+'/map').get();
   if(cached.val()?.result){
     const all = await loadAllAnswers();
     renderMapVisual(cached.val().result, all);
@@ -974,11 +1082,14 @@ async function renderMap(){
   let answersText = '';
   for(const role of ['student','tutor','mentor']){
     if(!all[role]) continue;
-    answersText += `\n\n## ${ROLES[role].toUpperCase()}\n`;
+    answersText += '\n\n## '+ROLES[role].toUpperCase()+'\n';
     for(const q of QUESTIONS){
       const ans = all[role]?.[q.id]?.text;
-      if(ans) answersText += `\n[${q.phaseLabel} · ${q.typeLabel}]\n${ans}\n`;
+      if(ans) answersText += '\n['+q.phaseLabel+' · '+q.typeLabel+']\n'+ans+'\n';
     }
+    // Include shared dialogic answer
+    const sharedAns = all[role]?.['shared-D']?.text;
+    if(sharedAns) answersText += '\n[Dialógica compartida · Para abrir la discusión]\n'+sharedAns+'\n';
   }
 
   if(!answersText.trim()){
@@ -1020,6 +1131,8 @@ Infiere la práctica científica subyacente al episodio pedagógico desde el con
 - **Argumentación**: el episodio involucra justificación de afirmaciones, uso de evidencia para convencer, debate.
 - **No identificable**: las respuestas no permiten inferir la práctica con certeza.
 
+La pregunta 7 es **Dialógica compartida**: los tres actores responden en el mismo campo visible simultáneamente, formulando una pregunta o sugerencia para abrir la discusión triádica. Esta pregunta activa el movimiento hacia Trial en ALACT.
+
 Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructura exacta:
 {
   "nodes": [
@@ -1044,7 +1157,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
 }`;
 
   try {
-    const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
+    const WORKER_URL = 'PASTE_YOUR_WORKER_URL_HERE';
 
     const response = await fetch(WORKER_URL, {
       method:'POST',
@@ -1062,7 +1175,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
     const result = JSON.parse(clean);
 
     // Save map to Firebase so all devices receive it via listener
-    await db.ref('sessions/'+S.sessionId+'/map').set({result, ts:Date.now()});
+    await db.ref('sessions_v2/'+S.sessionId+'/map').set({result, ts:Date.now()});
     renderMapVisual(result, all);
   } catch(e){
     container.innerHTML = `<div class="card"><p class="error">Error al generar el mapa: ${e.message}</p><p class="muted" style="margin-top:6px;font-size:12px">Verifica que haya respuestas suficientes e intenta de nuevo.</p><button class="btn btn-primary" style="margin-top:.75rem" onclick="renderMap()">Reintentar</button></div>`;
@@ -1186,7 +1299,7 @@ function renderMapVisual(result, all){
 // EXPORT
 // ═══════════════════════════════════════════
 async function exportSession(){
-  const snap = await db.ref(`sessions/${S.sessionId}`).get();
+  const snap = await db.ref(`sessions_v2/${S.sessionId}`).get();
   const data = snap.val()||{};
   const blob = new Blob([JSON.stringify({sessionId:S.sessionId, exportedAt:new Date().toISOString(), ...data},null,2)],{type:'application/json'});
   const url = URL.createObjectURL(blob);
@@ -1199,7 +1312,7 @@ async function exportSession(){
 // REGENERATE MAP (clears cache and re-runs AI)
 // ═══════════════════════════════════════════
 async function regenerateMap(){
-  await db.ref('sessions/'+S.sessionId+'/map').remove();
+  await db.ref('sessions_v2/'+S.sessionId+'/map').remove();
   renderMap();
 }
 

@@ -635,6 +635,8 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
     });
     const data = await response.json();
     const raw = data.content?.[0]?.text || '';
+console.log('=== RAW TEXT ===', raw.substring(0, 500));
+console.log('=== DATA ===', JSON.stringify(data).substring(0, 500));
     const clean = raw.replace(/```json|```/g,'').trim();
     const result = JSON.parse(clean);
 

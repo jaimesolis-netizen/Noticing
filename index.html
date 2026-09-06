@@ -555,42 +555,54 @@ async function renderMap(){
 
 Tu tarea es analizar las respuestas de una tríada formativa (estudiante en formación, tutor universitario, profesor mentor) a una bitácora de noticing reflexivo sobre un episodio pedagógico en el aula de ciencias.
 
-## MARCO CONCEPTUAL CRÍTICO
+## INSTRUMENTO — 7 preguntas iguales para los tres actores
 
-El instrumento tiene tres tipos de preguntas por cada dimensión de noticing (Atender / Interpretar / Decidir):
-- **Lectura (L)**: pide describir lo que dice la bitácora del estudiante. Opera principalmente en las fases ALACT de "Acción" (describe lo ocurrido) y "Looking Back" (reconstruye el episodio desde el texto). Es el nivel más descriptivo.
-- **Reflexiva (R)**: pide al actor posicionarse desde su propio rol y hacer un "noticing del noticing" — reflexionar sobre su propio proceso de atender/interpretar/decidir. Opera principalmente en "Awareness" (toma de conciencia de la propia mirada) y "Alternatives" (cuando propone perspectivas distintas). Es el nivel meta-reflexivo.
-- **Dialógica (D)**: pide formular una pregunta hacia otro actor de la tríada. Activa el movimiento reflexivo triádico. Opera en "Alternatives" (cuando la pregunta propone alternativas) o "Trial" (cuando proyecta hacia la acción futura). Una pregunta dialógica superficial puede quedarse en "Looking Back".
+ATENDER:
+- att-L (Lectura): ¿Qué de lo que describe la bitácora te llamó la atención y por qué?
+- att-R (Reflexiva): ¿Qué detalle del episodio te pareció pedagógicamente significativo desde tu posición en la tríada, y por qué ese detalle?
+
+INTERPRETAR:
+- int-L (Lectura): ¿Qué explicación o sentido le da el estudiante en su bitácora a lo que ocurrió? ¿Qué conecta con el aprendizaje de ciencias?
+- int-R (Reflexiva): ¿Cómo interpretas tú ese episodio? ¿En qué tu lectura coincide o difiere de la del estudiante, y qué lo explica?
+
+DECIDIR:
+- dec-L (Lectura): ¿Qué decisión pedagógica propone o anticipa el estudiante en su bitácora frente a ese episodio y qué la fundamenta?
+- dec-R (Reflexiva): ¿Qué decidirías o recomendarías tú, y en qué se basa esa decisión en lo que el estudiante ya comprende sobre la enseñanza de las ciencias?
+- dec-D (Dialógica): ¿Qué le preguntarías a otro miembro de la tríada sobre qué haría o recomendaría frente a este episodio?
+
+## TIPOS DE PREGUNTA Y FASES ALACT ESPERADAS
+
+- Lectura (L): ancla en el texto de la bitácora. Esperable en Acción o Looking Back.
+- Reflexiva (R): posicionamiento desde el propio rol, meta-reflexión. Esperable en Awareness o Alternatives.
+- Dialógica (D): pregunta o sugerencia hacia otro actor. Esperable en Alternatives o Trial.
 
 ## CRITERIOS DE ASIGNACIÓN ALACT
 
-Asigna la fase ALACT según el CONTENIDO de la respuesta, no solo el tipo de pregunta:
-- **Acción**: describe hechos del episodio sin distancia reflexiva. "El estudiante hizo X."
-- **Looking Back**: reconstruye lo ocurrido con algo de distancia. "Lo que describe la bitácora es... / Noto que en ese momento..."
-- **Awareness**: toma conciencia de por qué notó eso y no otra cosa, o de la brecha entre lo esperado y lo ocurrido. "Me llama la atención porque desde mi posición como tutor... / Esto me hace ver que..."
-- **Alternatives**: genera perspectivas alternativas, cuestiona supuestos, propone marcos distintos. "Podría interpretarse también como... / Si en cambio..."
-- **Trial**: proyecta hacia acción futura concreta y fundamentada en lo reflexionado. "La próxima vez haría... porque esto me mostró que..."
-
-Una respuesta a una pregunta Reflexiva (R) que solo describe hechos sin distancia crítica debe asignarse a "Looking Back", no a "Awareness". El tipo de pregunta es una señal, no una garantía.
+Asigna según el CONTENIDO de la respuesta, no solo el tipo de pregunta:
+- Acción: describe hechos sin distancia reflexiva.
+- Looking Back: reconstruye lo ocurrido con algo de distancia.
+- Awareness: toma conciencia de la brecha entre lo esperado y lo ocurrido, o de su propia mirada.
+- Alternatives: genera perspectivas alternativas, cuestiona supuestos.
+- Trial: proyecta hacia acción futura concreta y fundamentada.
 
 ## MOVIMIENTO REFLEXIVO
 
-Detecta si una respuesta muestra movimiento entre dimensiones de noticing (ej. alguien que en una pregunta de Atender ya está Interpretando o Decidiendo). Esto es metodológicamente relevante: indica que ese actor tiene mayor integración entre las tres habilidades de noticing (Jacobs et al., 2010).
+Detecta si una respuesta muestra movimiento entre dimensiones de noticing (ej. alguien que en Atender ya está Interpretando o Decidiendo).
 
 ## PRÁCTICA CIENTÍFICA
 
-Infiere la práctica científica subyacente al episodio pedagógico desde el contenido de las respuestas:
-- **Indagación**: el episodio involucra preguntas, hipótesis, experimentos, búsqueda de evidencia.
-- **Modelización**: el episodio involucra construcción, uso o evaluación de modelos explicativos.
-- **Argumentación**: el episodio involucra justificación de afirmaciones, uso de evidencia para convencer, debate.
-- **No identificable**: las respuestas no permiten inferir la práctica con certeza.
+Infiere desde el contenido de las respuestas:
+- Indagación: preguntas, hipótesis, experimentos, búsqueda de evidencia.
+- Modelización: construcción, uso o evaluación de modelos explicativos.
+- Argumentación: justificación de afirmaciones, uso de evidencia para convencer.
+- No identificable: no se puede inferir con certeza.
 
 Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructura exacta:
 {
   "nodes": [
     {
       "role": "student|tutor|mentor",
-      "qid": "att-L|att-R|att-D|int-L|int-R|int-D|dec-L|dec-R|dec-D",
+      "qid": "att-L|att-R|int-L|int-R|dec-L|dec-R|dec-D",
       "qtype": "L|R|D",
       "alact": "Acción|Looking Back|Awareness|Alternatives|Trial",
       "alact_rationale": "una frase breve que justifica por qué esta fase y no otra",
@@ -606,7 +618,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
   "divergences": ["descripción breve de divergencia entre actores"],
   "reflective_triggers": ["tensión o nudo reflexivo concreto para la discusión triádica"],
   "alact_pattern": "descripción en 2-3 frases del patrón de trayectoria reflexiva que muestra la tríada en conjunto"
-}`;
+}`
 
   try {
     const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
@@ -1021,7 +1033,7 @@ Responde SOLO en JSON válido, sin texto previo ni backticks, con esta estructur
   "nodes": [
     {
       "role": "student|tutor|mentor",
-      "qid": "att-L|att-R|att-D|int-L|int-R|int-D|dec-L|dec-R|dec-D",
+      "qid": "att-L|att-R|int-L|int-R|dec-L|dec-R|dec-D",
       "qtype": "L|R|D",
       "alact": "Acción|Looking Back|Awareness|Alternatives|Trial",
       "alact_rationale": "una frase breve que justifica por qué esta fase y no otra",

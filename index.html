@@ -622,6 +622,7 @@ Estructura exacta requerida:
       })
     });
     const data = await response.json();
+    console.log('RAW:', JSON.stringify(data).substring(0,400));
     const raw = data.content?.[0]?.text || '';
     console.log('RAW:', raw.substring(0,300));
     console.log('ERROR:', data.error||'none');

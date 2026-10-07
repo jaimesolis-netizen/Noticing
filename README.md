@@ -26,7 +26,7 @@ El cruce de ambos marcos permite mapear no solo *qué* notaron los actores, sino
 
 ## Estructura del cuestionario
 
-Nueve preguntas organizadas en tres dimensiones de noticing × tres tipos de pregunta:
+Siete preguntas organizadas en tres dimensiones de noticing × tres tipos de pregunta:
 
 | Tipo | Código | Función | Fase ALACT esperada |
 |------|--------|---------|---------------------|
@@ -42,25 +42,26 @@ Las preguntas D no se responden dentro de la app: quedan registradas como agenda
 
 ## Análisis con IA
 
-Al completar las respuestas, la pestaña **Mapa IA** llama a Claude Sonnet (Anthropic) y genera automáticamente:
+La IA se llama a través de un Cloudflare Worker (`cloudflare_worker.js`) que oculta la API key y usa OpenRouter (modelo por defecto: `poolside/laguna-s-2.1:free`). La pestaña **Mapa IA** genera, en dos etapas:
 
-- **Mapa de trayectoria triádica**: cada respuesta ubicada en el cruce ALACT × Noticing, etiquetada por rol y tipo de pregunta
-- **Práctica científica inferida**: la IA clasifica el episodio como indagación, modelización, argumentación o naturaleza de la ciencia (NoS) desde el contenido de las respuestas
-- **Profundidad reflexiva**: cada respuesta clasificada como descriptiva, analítica o crítica, agrupada por tipo de pregunta (L / R / D)
-- **Patrón de trayectoria**: descripción del movimiento reflexivo de la tríada en conjunto
-- **Convergencias y divergencias** entre los tres actores
-- **Nudos reflexivos**: tensiones identificadas por la IA que estructuran la agenda de la discusión triádica en vivo
+1. **Análisis de noticing**: cada respuesta se ubica en ALACT × Noticing × práctica científica (indagación, modelización, argumentación, NdC), con profundidad reflexiva, movimiento entre dimensiones, convergencias, divergencias, nudos reflexivos, patrón ALACT, resumen del encuentro y perfil por rol.
+2. **Borrador del informe** en el formato institucional "Reunión de Triada Formativa".
 
-El mapa generado se guarda en Firebase y puede exportarse como JSON para análisis posterior en ATLAS.ti.
+Visualizaciones: mapa de trayectorias por rol (rol × Atender/Interpretar/Decidir en columnas; fase ALACT × práctica en filas; flechas con el orden de respuesta), trayectoria ALACT a lo largo de las 7 preguntas y ciclo de noticing con el nivel ALACT medio por rol.
+
+Una barra de estado sincronizada muestra en todos los dispositivos el modelo empleado, la etapa en curso, el tiempo transcurrido y los tokens usados.
+
+El informe es editable (las ediciones se sincronizan), se exporta a Word (.docx, con el mapa como figura y las respuestas como anexo) o se imprime a PDF.
 
 ---
 
 ## Tecnología
 
-- HTML / CSS / JavaScript — archivo único sin dependencias de build
-- [Firebase Realtime Database](https://firebase.google.com/) — sincronización en tiempo real entre dispositivos
-- [Anthropic API](https://www.anthropic.com/) — análisis y mapeo con Claude Sonnet
-- Desplegable en GitHub Pages sin servidor
+- HTML / CSS / JavaScript — archivo único sin build
+- Firebase Realtime Database — sincronización en tiempo real
+- Cloudflare Worker + OpenRouter — análisis con IA
+- docx.js (cargado solo al exportar) — informe en Word
+- Desplegable en GitHub Pages
 
 ---
 
@@ -91,7 +92,7 @@ const firebaseConfig = {
 1. El facilitador genera un código de sesión y lo comparte con los tres actores
 2. Cada actor abre la URL, selecciona su rol e ingresa el código
 3. El estudiante relata verbalmente el episodio pedagógico de su bitácora
-4. Los tres actores responden las 9 preguntas de forma simultánea e independiente
+4. Los tres actores responden las 7 preguntas de forma simultánea e independiente
 5. Al terminar, el facilitador abre la pestaña **Mapa IA** y proyecta el resultado
 6. La tríada discute el mapa: convergencias, divergencias y nudos reflexivos
 
@@ -103,11 +104,15 @@ const firebaseConfig = {
 sessions/
   └── {CODIGO-SESION}/
         ├── presence/          ← roles conectados
+        ├── meta/              ← datos de la reunión (sección I del informe)
         ├── answers/
         │     ├── student/     ← respuestas por pregunta (att-L, att-R, ... dec-D)
         │     ├── tutor/
         │     └── mentor/
-        └── map/               ← resultado del análisis IA
+        ├── ai_status/         ← estado de la IA en tiempo real
+        ├── map/               ← resultado del análisis IA (+ modelo, tokens, tiempo)
+        ├── report/            ← borrador IA del informe
+        └── report_edits/      ← ediciones manuales del informe
 ```
 
 ---

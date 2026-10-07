@@ -4,187 +4,332 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Noticing Triádico — PUCV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --purple:#7F77DD;--purple-light:#EEEDFE;--purple-dark:#3C3489;
-  --teal:#1D9E75;--teal-light:#E1F5EE;--teal-dark:#085041;
-  --amber:#BA7517;--amber-light:#FAEEDA;--amber-dark:#633806;
-  --bg:#ffffff;--bg2:#f7f6f2;--border:#e0dfd8;
-  --text:#1a1a18;--text2:#5f5e5a;--text3:#9c9a92;
-  --radius:10px;--radius-sm:6px;
+  --st:#5A4FCF;--st-l:#EEEDFE;--st-d:#3C3489;
+  --tu:#0F8A6A;--tu-l:#E1F5EE;--tu-d:#085041;
+  --me:#C2620F;--me-l:#FAEEDA;--me-d:#633806;
+  --ink:#16181d;--ink2:#4b5160;--ink3:#8a90a0;
+  --bg:#f4f5f7;--surface:#ffffff;--surface2:#f8f9fb;
+  --line:#e3e6ec;--line2:#cfd4dd;
+  --ok:#0F8A6A;--warn:#B7791F;--err:#B42318;
+  --r:12px;--rs:8px;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --serif:'Source Serif 4',Georgia,serif;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg2);color:var(--text);font-size:15px;line-height:1.6;min-height:100vh}
-.screen{display:none;max-width:680px;margin:0 auto;padding:1.5rem 1rem}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;min-height:100vh}
+button{font-family:inherit}
+.screen{display:none;max-width:760px;margin:0 auto;padding:1.25rem 16px 3rem}
 .screen.active{display:block}
-.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:.55rem 1.1rem;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;cursor:pointer;transition:background .15s}
-.btn:hover{background:var(--bg2)}
-.btn-primary{background:var(--purple-light);color:var(--purple-dark);border-color:#AFA9EC}
-.btn-primary:hover{background:#CECBF6}
-.btn-full{width:100%;justify-content:center}
-.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;border:0.5px solid}
-.pill-student{background:var(--purple-light);color:var(--purple-dark);border-color:#AFA9EC}
-.pill-tutor{background:var(--teal-light);color:var(--teal-dark);border-color:#5DCAA5}
-.pill-mentor{background:var(--amber-light);color:var(--amber-dark);border-color:#EF9F27}
-.phase{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:20px;margin-bottom:6px}
-.phase-att{background:#E6F1FB;color:#0C447C}
-.phase-int{background:var(--teal-light);color:var(--teal-dark)}
-.phase-dec{background:var(--amber-light);color:var(--amber-dark)}
-.qtype{display:inline-block;font-size:11px;padding:1px 8px;border-radius:4px;margin-bottom:4px;font-weight:500}
-.qtype-L{background:#F1EFE8;color:#5F5E5A}
-.qtype-R{background:var(--purple-light);color:var(--purple-dark)}
-.qtype-D{background:var(--teal-light);color:var(--teal-dark)}
-input[type=text],textarea{width:100%;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:.6rem .8rem;font-size:14px;font-family:inherit;color:var(--text);background:var(--bg);resize:vertical}
-input[type=text]:focus,textarea:focus{outline:none;border-color:var(--purple)}
-textarea{min-height:100px}
-.progress{height:3px;background:var(--bg2);border-radius:2px;margin-bottom:1rem;overflow:hidden}
-.progress-fill{height:100%;background:var(--purple);border-radius:2px;transition:width .4s}
-.steps{display:flex;gap:5px;margin-bottom:1rem;flex-wrap:wrap}
-.step-dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
-.step-pending{background:var(--bg2);color:var(--text3);border:0.5px solid var(--border)}
-.step-active{background:var(--purple-light);color:var(--purple-dark);border:0.5px solid #AFA9EC}
-.step-done{background:var(--teal-light);color:var(--teal-dark);border:0.5px solid #5DCAA5}
-.bubble{border-radius:var(--radius-sm);padding:.8rem 1rem;margin-top:8px;font-size:14px;line-height:1.6;border-left:3px solid}
-.bubble-student{background:var(--purple-light);border-color:var(--purple)}
-.bubble-tutor{background:var(--teal-light);border-color:var(--teal)}
-.bubble-mentor{background:var(--amber-light);border-color:var(--amber)}
-.bubble-label{font-size:11px;font-weight:600;margin-bottom:4px;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
-.map-grid{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:var(--radius);overflow:hidden;font-size:12px;margin-bottom:1rem}
-.map-cell{background:var(--bg);padding:.5rem .6rem;min-height:44px}
-.map-header{background:var(--bg2);font-weight:600;font-size:11px;color:var(--text2);display:flex;align-items:center;justify-content:center;text-align:center}
-.map-phase{background:var(--bg2);font-weight:600;font-size:11px;color:var(--text2);display:flex;align-items:center;padding:.5rem .6rem}
-.map-node{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;margin:2px;cursor:default}
-.node-student{background:var(--purple-light);color:var(--purple-dark)}
-.node-tutor{background:var(--teal-light);color:var(--teal-dark)}
-.node-mentor{background:var(--amber-light);color:var(--amber-dark)}
-.member-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border)}
-.member-row:last-child{border-bottom:none}
-.session-code{font-size:32px;font-weight:600;letter-spacing:.18em;color:var(--purple-dark);font-family:monospace;text-align:center;padding:.5rem}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
-.stat{background:var(--bg2);border-radius:var(--radius-sm);padding:.6rem;text-align:center}
-.stat-n{font-size:22px;font-weight:600;color:var(--text)}
-.stat-l{font-size:11px;color:var(--text3)}
-.tabs{display:flex;gap:4px;margin-bottom:1rem}
-.tab{flex:1;padding:.4rem;font-size:13px;text-align:center;cursor:pointer;border-radius:var(--radius-sm);border:0.5px solid var(--border);color:var(--text2)}
-.tab.active{background:var(--purple-light);color:var(--purple-dark);border-color:#AFA9EC;font-weight:500}
-.role-btn{display:flex;align-items:center;gap:10px;width:100%;padding:.8rem 1rem;border:0.5px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);cursor:pointer;margin-bottom:8px;transition:background .15s}
-.role-btn:hover{background:var(--bg2)}
-.role-btn.selected{border-color:var(--purple);background:var(--purple-light)}
-.divider{height:0.5px;background:var(--border);margin:1rem 0}
-.nav{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem}
-.nav-back{padding:.3rem .6rem}
-.nav-title{font-size:14px;color:var(--text2)}
-.nav-right{margin-left:auto}
-.empty{text-align:center;color:var(--text3);font-size:13px;padding:1.5rem}
-.label{font-size:12px;color:var(--text2);margin-bottom:4px;font-weight:500}
-h1{font-size:20px;font-weight:600;color:var(--text);margin-bottom:.25rem}
-h2{font-size:16px;font-weight:600;margin-bottom:.5rem}
-.muted{color:var(--text3);font-size:13px}
-.error{color:#A32D2D;font-size:13px;margin-top:4px}
+.screen.wide{max-width:1140px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:1.15rem 1.25rem;margin-bottom:1rem}
+h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+h2{font-size:16px;font-weight:600;margin-bottom:.4rem}
+h3{font-size:14px;font-weight:600;margin-bottom:.35rem}
+.muted{color:var(--ink3);font-size:13px}
+.label{font-size:12px;color:var(--ink2);margin-bottom:5px;font-weight:600;letter-spacing:.01em}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);font-weight:600}
+.error{color:var(--err);font-size:13px;margin-top:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:.55rem 1rem;border-radius:var(--rs);border:1px solid var(--line2);background:var(--surface);color:var(--ink);font-size:14px;font-weight:500;cursor:pointer;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--surface2)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-dark{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn-dark:hover{background:#2c303a}
+.btn-sm{padding:.3rem .65rem;font-size:12.5px}
+.btn-full{width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+input[type=text],input[type=date],input[type=time],input[type=number],textarea{width:100%;border:1px solid var(--line2);border-radius:var(--rs);padding:.55rem .75rem;font-size:14px;font-family:inherit;color:var(--ink);background:var(--surface)}
+input:focus,textarea:focus{outline:2px solid #c7c3f5;outline-offset:0;border-color:var(--st)}
+textarea{min-height:110px;resize:vertical;line-height:1.55}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid transparent;white-space:nowrap}
+.pill-student{background:var(--st-l);color:var(--st-d);border-color:#c9c4f3}
+.pill-tutor{background:var(--tu-l);color:var(--tu-d);border-color:#9fd9c4}
+.pill-mentor{background:var(--me-l);color:var(--me-d);border-color:#efc58f}
+.tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;padding:2px 9px;border-radius:20px;background:var(--surface2);color:var(--ink2);border:1px solid var(--line)}
+.qtype{display:inline-block;font-size:11px;padding:2px 8px;border-radius:5px;font-weight:600;background:var(--surface2);color:var(--ink2);border:1px solid var(--line)}
+.role-btn{display:flex;align-items:center;gap:10px;width:100%;padding:.75rem 1rem;border:1px solid var(--line);border-radius:var(--rs);background:var(--surface);cursor:pointer;margin-bottom:8px;text-align:left}
+.role-btn:hover{background:var(--surface2)}
+.role-btn.selected{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink) inset}
+.divider{height:1px;background:var(--line);margin:1rem 0}
+.empty{text-align:center;color:var(--ink3);font-size:13px;padding:1.25rem}
 @keyframes spin{to{transform:rotate(360deg)}}
-.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+.spinner{width:16px;height:16px;border:2px solid var(--line2);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+
+/* ── Session header ── */
+#session-head{display:none;position:sticky;top:0;z-index:50;background:rgba(244,245,247,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+#session-head.on{display:block}
+.sh-inner{max-width:1140px;margin:0 auto;padding:8px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sh-code{font-family:ui-monospace,Menlo,monospace;font-weight:700;letter-spacing:.12em;font-size:14px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:2px 8px}
+.pres{display:flex;gap:6px;flex-wrap:wrap}
+.pres-chip{display:inline-flex;align-items:center;gap:5px;font-size:12px;padding:2px 8px;border-radius:20px;background:var(--surface);border:1px solid var(--line);color:var(--ink2)}
+.pres-dot{width:7px;height:7px;border-radius:50%;background:#c4c8d0}
+.pres-chip.online .pres-dot{background:var(--ok)}
+.pres-chip b{font-weight:600}
+
+/* ── AI status bar ── */
+.aibar{max-width:1140px;margin:0 auto;padding:0 16px 8px}
+.ai-box{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.ai-top{display:flex;align-items:center;gap:10px;padding:7px 10px;cursor:pointer;user-select:none}
+.ai-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;background:#c4c8d0}
+.ai-dot.idle{background:#c4c8d0}
+.ai-dot.ok,.ai-dot.done{background:var(--ok)}
+.ai-dot.running{background:var(--st);box-shadow:0 0 0 0 rgba(90,79,207,.5);animation:pulse 1.4s infinite}
+.ai-dot.error{background:var(--err)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(90,79,207,.45)}70%{box-shadow:0 0 0 7px rgba(90,79,207,0)}100%{box-shadow:0 0 0 0 rgba(90,79,207,0)}}
+.ai-model{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-prov{font-size:12px;color:var(--ink3);white-space:nowrap}
+.ai-free{font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--tu-d);background:var(--tu-l);border-radius:4px;padding:1px 5px}
+.ai-state{font-size:12.5px;color:var(--ink2);margin-left:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ai-timer{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--ink2);min-width:42px;text-align:right}
+.ai-caret{font-size:11px;color:var(--ink3);transition:transform .2s}
+.ai-box.open .ai-caret{transform:rotate(180deg)}
+.ai-progress{height:3px;background:var(--surface2)}
+.ai-progress-fill{height:100%;width:0;background:var(--st);transition:width .4s}
+.ai-progress.indet .ai-progress-fill{width:30%!important;animation:indet 1.3s ease-in-out infinite}
+@keyframes indet{0%{margin-left:-30%}100%{margin-left:100%}}
+.ai-detail{display:none;padding:10px 12px 12px;border-top:1px solid var(--line);font-size:12.5px}
+.ai-box.open .ai-detail{display:block}
+.ai-stages{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.ai-stage{font-size:11.5px;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--ink3);background:var(--surface2)}
+.ai-stage.done{color:var(--tu-d);background:var(--tu-l);border-color:#9fd9c4}
+.ai-stage.cur{color:#fff;background:var(--st);border-color:var(--st)}
+.ai-stage.err{color:#fff;background:var(--err);border-color:var(--err)}
+.ai-kv{display:grid;grid-template-columns:max-content 1fr;gap:3px 12px;color:var(--ink2);margin-bottom:8px}
+.ai-kv dt{color:var(--ink3)}
+.ai-kv dd{font-family:ui-monospace,Menlo,monospace;font-size:12px;word-break:break-all}
+
+/* ── Questions ── */
+.progress{height:4px;background:var(--line);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--ink);transition:width .35s}
+.steps{display:flex;gap:5px;flex-wrap:wrap}
+.step-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--ink3)}
+.step-dot.done{background:var(--tu-l);color:var(--tu-d);border-color:#9fd9c4}
+.step-dot.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.saved{font-size:12px;color:var(--ink3)}
+
+/* ── View tabs ── */
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:1rem}
+.tab{flex:1;padding:.45rem .5rem;font-size:13.5px;text-align:center;cursor:pointer;border-radius:7px;color:var(--ink2);font-weight:500;border:none;background:none}
+.tab.active{background:var(--ink);color:#fff}
+.tab .badge{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--st);margin-left:5px;vertical-align:middle}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:.9rem}
+.chip{font-size:12.5px;padding:4px 11px;border-radius:20px;border:1px solid var(--line2);background:var(--surface);cursor:pointer;color:var(--ink2)}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bubble{border-radius:var(--rs);padding:.7rem .9rem;margin-top:8px;font-size:14px;line-height:1.6;border-left:3px solid;white-space:pre-wrap}
+.bubble-student{background:var(--st-l);border-color:var(--st)}
+.bubble-tutor{background:var(--tu-l);border-color:var(--tu)}
+.bubble-mentor{background:var(--me-l);border-color:var(--me)}
+.bubble-label{font-size:11px;font-weight:700;margin-bottom:3px;opacity:.75;text-transform:uppercase;letter-spacing:.05em;white-space:normal}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.6rem .75rem}
+.stat-n{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat-l{font-size:12px;color:var(--ink3)}
+
+/* ── Map ── */
+.map-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;padding:0 4px}
+.map-scroll svg{display:block;min-width:820px;width:100%;height:auto}
+.legend{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--ink2);margin:.6rem 0 .2rem}
+.lg-item{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:2px 4px;border-radius:6px}
+.lg-item.off{opacity:.35}
+.lg-sw{width:11px;height:11px;border-radius:50%}
+.qkey{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:4px 14px;font-size:12px;color:var(--ink2);margin-top:.6rem}
+.qkey b{display:inline-block;min-width:18px;color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.grid2>.card,.grid3>.card{margin-bottom:0}
+.listy{padding-left:1.1rem;font-size:14px;line-height:1.65}
+.listy li{margin-bottom:.35rem}
+.accent{border-left:3px solid var(--ink)}
+.callout{background:var(--surface2);border:1px solid var(--line);border-radius:var(--rs);padding:.8rem 1rem;font-size:14px;line-height:1.7}
+#tip{position:fixed;z-index:999;pointer-events:none;background:#16181d;color:#fff;font-size:12px;line-height:1.5;border-radius:8px;padding:8px 10px;max-width:300px;box-shadow:0 6px 24px rgba(0,0,0,.2);opacity:0;transition:opacity .12s}
+#tip.on{opacity:1}
+#tip .t-h{font-weight:600;margin-bottom:3px}
+#tip .t-q{font-style:italic;color:#d6d8de;margin-top:4px}
+table.data{width:100%;border-collapse:collapse;font-size:12.5px}
+table.data th,table.data td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.data th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);font-weight:600;background:var(--surface2)}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+
+/* ── Report (document) ── */
+.doc-wrap{background:#e9ebef;border-radius:var(--r);padding:24px 12px}
+.doc{background:#fff;max-width:820px;margin:0 auto;padding:48px 56px;box-shadow:0 2px 14px rgba(0,0,0,.08);font-family:Calibri,'Carlito','Inter',sans-serif;font-size:14px;color:#111;line-height:1.5}
+.doc h1{font-size:17px;text-align:center;font-weight:700;letter-spacing:.02em;margin-bottom:6px}
+.doc .sub{text-align:center;font-weight:700;font-size:14px;margin-bottom:22px}
+.doc h4{font-size:14px;font-weight:700;margin:20px 0 8px}
+.doc p.body{text-align:justify;margin-bottom:10px}
+.doc table{width:100%;border-collapse:collapse;margin-bottom:8px}
+.doc td,.doc th{border:1px solid #000;padding:5px 8px;vertical-align:top;font-size:13.5px}
+.doc th{background:#D9E2F3;font-weight:700;text-align:center}
+.doc td.k{font-weight:700;width:36%;background:#F2F2F2}
+.doc input.f,.doc textarea.f{border:none;background:transparent;width:100%;font:inherit;color:inherit;padding:0;resize:none;outline:none;min-height:0}
+.doc textarea.f{overflow:hidden;line-height:1.5}
+.doc .f:focus{background:#fff8d6;outline:1px dashed #c9a300}
+.doc ol{padding-left:22px}
+.doc .ai-note{font-size:11.5px;color:#555;border-top:1px solid #bbb;margin-top:22px;padding-top:8px}
+.doc .annex{page-break-before:always;margin-top:34px;border-top:2px solid #111;padding-top:16px}
+.doc .annex svg{width:100%;height:auto;display:block}
+.doc .caption{font-size:12px;color:#444;margin:4px 0 12px}
+.doc ul{padding-left:20px;margin-bottom:8px}
+.edit-hint{font-size:12px;color:var(--ink3);margin-bottom:.6rem}
+
+@media (max-width:760px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  .doc{padding:28px 18px}
+  .ai-prov{display:none}
+  #session-head{position:static}
+  .stats{gap:6px}
+  .stat-n{font-size:18px}
+}
+@media (max-width:480px){
+  .ai-state{max-width:120px}
+  .tab{font-size:12.5px;padding:.45rem .3rem}
+}
+@media print{
+  body{background:#fff}
+  body *{visibility:hidden}
+  #report-doc,#report-doc *{visibility:visible}
+  #report-doc{position:absolute;left:0;top:0;width:100%;box-shadow:none;padding:0;max-width:none}
+  .doc-wrap{background:none;padding:0}
+  .doc .f:focus{background:none;outline:none}
+}
 </style>
 </head>
 <body>
 
+<!-- ═══════════ SESSION HEADER (presence + AI status) ═══════════ -->
+<header id="session-head">
+  <div class="sh-inner">
+    <span class="sh-code" id="sh-code">—</span>
+    <span id="sh-role"></span>
+    <div class="pres" id="sh-pres"></div>
+  </div>
+  <div class="aibar">
+    <div class="ai-box" id="ai-box">
+      <div class="ai-top" onclick="toggleAIDetail()" role="button" aria-expanded="false" aria-controls="ai-detail">
+        <span class="ai-dot idle" id="ai-dot"></span>
+        <span class="ai-model" id="ai-model">—</span>
+        <span class="ai-free" id="ai-free" style="display:none">FREE</span>
+        <span class="ai-prov" id="ai-prov">vía OpenRouter</span>
+        <span class="ai-state" id="ai-state">En espera</span>
+        <span class="ai-timer" id="ai-timer"></span>
+        <span class="ai-caret">▾</span>
+      </div>
+      <div class="ai-progress" id="ai-progress"><div class="ai-progress-fill" id="ai-progress-fill"></div></div>
+      <div class="ai-detail" id="ai-detail">
+        <div class="ai-stages" id="ai-stages"></div>
+        <dl class="ai-kv" id="ai-kv"></dl>
+        <div class="row">
+          <button class="btn btn-sm" onclick="pingAI(event)">Probar conexión</button>
+          <span class="muted" id="ai-ping"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════ HOME ═══════════ -->
 <div id="screen-home" class="screen active">
-  <div style="margin-bottom:1.5rem;padding-top:.5rem">
-    <p class="muted" style="margin-bottom:.25rem">PUCV · Instituto de Química</p>
+  <div style="margin:1rem 0 1.5rem">
+    <p class="eyebrow" style="margin-bottom:.35rem">PUCV · Instituto de Química</p>
     <h1>Noticing triádico reflexivo</h1>
-    <p class="muted">Bitácora colaborativa · Práctica Docente Final</p>
+    <p class="muted">Bitácora colaborativa · Práctica Docente Final · Análisis ALACT × Noticing con IA</p>
   </div>
   <div class="card">
     <p class="label">¿Cuál es tu rol en la tríada?</p>
-    <button class="role-btn" id="btn-student" onclick="selectRole('student')">
-      <span class="pill pill-student">Estudiante en formación</span>
-      <span class="muted" style="font-size:13px">Profesor/a en práctica final</span>
-    </button>
-    <button class="role-btn" id="btn-tutor" onclick="selectRole('tutor')">
-      <span class="pill pill-tutor">Tutor universitario</span>
-      <span class="muted" style="font-size:13px">Académico/a PUCV</span>
-    </button>
-    <button class="role-btn" id="btn-mentor" onclick="selectRole('mentor')">
-      <span class="pill pill-mentor">Profesor mentor</span>
-      <span class="muted" style="font-size:13px">Docente co-formador/a</span>
-    </button>
+    <button class="role-btn" id="btn-student" onclick="selectRole('student')"><span class="pill pill-student">Estudiante en formación</span><span class="muted">Profesor/a en práctica final</span></button>
+    <button class="role-btn" id="btn-tutor" onclick="selectRole('tutor')"><span class="pill pill-tutor">Tutor universitario</span><span class="muted">Académico/a PUCV</span></button>
+    <button class="role-btn" id="btn-mentor" onclick="selectRole('mentor')"><span class="pill pill-mentor">Profesor mentor</span><span class="muted">Docente co-formador/a</span></button>
   </div>
   <div class="card">
     <p class="label">Código de sesión triádica</p>
-    <div style="display:flex;gap:8px;margin-bottom:.75rem">
-      <input type="text" id="session-input" placeholder="Ej: T2-B3" maxlength="8" style="font-family:monospace;letter-spacing:.1em;text-transform:uppercase">
+    <div class="row" style="margin-bottom:.75rem;flex-wrap:nowrap">
+      <input type="text" id="session-input" placeholder="Ej: T2Q3X" maxlength="8" style="font-family:ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase">
       <button class="btn" onclick="joinSession()">Unirse</button>
     </div>
     <p id="home-error" class="error" style="display:none"></p>
     <div class="divider"></div>
-    <button class="btn btn-full" onclick="createSession()">+ Crear nueva sesión</button>
+    <button class="btn btn-dark btn-full" onclick="createSession()">+ Crear nueva sesión</button>
   </div>
 </div>
 
+<!-- ═══════════ LOBBY ═══════════ -->
 <div id="screen-lobby" class="screen">
-  <div class="nav">
-    <button class="btn nav-back" onclick="goHome()">← Volver</button>
-    <span class="nav-title">Sala de espera</span>
+  <div class="row" style="margin-bottom:1rem">
+    <button class="btn btn-sm" onclick="goHome()">← Salir</button>
+    <span class="muted">Sala de espera</span>
   </div>
   <div class="card" style="text-align:center">
-    <p class="muted" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.25rem">Código de sesión</p>
-    <div class="session-code" id="lobby-code">—</div>
-    <p class="muted" style="font-size:12px">Comparte este código con los demás miembros</p>
+    <p class="eyebrow">Código de sesión</p>
+    <div id="lobby-code" style="font-size:34px;font-weight:700;letter-spacing:.2em;font-family:ui-monospace,monospace;margin:.25rem 0">—</div>
+    <p class="muted">Compártelo con los otros dos miembros de la tríada</p>
   </div>
   <div class="card">
-    <h2>Conectados</h2>
-    <div id="lobby-members"><div class="empty">Esperando participantes…</div></div>
-    <div class="divider"></div>
-    <p class="muted" style="font-size:12px;margin-bottom:.75rem">El estudiante relata el episodio antes de iniciar.</p>
-    <button class="btn btn-primary btn-full" onclick="startSession()">Iniciar reflexión triádica →</button>
+    <h2>Datos de la reunión</h2>
+    <p class="muted" style="margin-bottom:.8rem">Se sincronizan con todos los dispositivos y alimentan la sección I del informe.</p>
+    <div class="grid2" id="meta-form"></div>
+    <div style="margin-top:.8rem">
+      <p class="label">Episodio pedagógico (resumen de la bitácora)</p>
+      <textarea data-meta="episodio" placeholder="El estudiante relata brevemente el episodio que se analizará…" style="min-height:80px"></textarea>
+    </div>
   </div>
+  <button class="btn btn-dark btn-full" onclick="startQuestions()">Iniciar reflexión triádica →</button>
 </div>
 
+<!-- ═══════════ QUESTIONS ═══════════ -->
 <div id="screen-question" class="screen">
-  <div class="nav">
-    <div id="q-pill"></div>
-    <span class="nav-title" id="q-session-label"></span>
-    <button class="btn nav-right" onclick="goToView()">Ver respuestas →</button>
+  <div class="row" style="margin-bottom:1rem">
+    <button class="btn btn-sm" onclick="show('lobby')">← Datos</button>
+    <span class="grow"></span>
+    <button class="btn btn-sm" onclick="goToView()">Ver tríada →</button>
   </div>
   <div class="progress"><div class="progress-fill" id="q-progress"></div></div>
-  <div style="display:flex;align-items:center;gap:6px;margin-bottom:1rem">
+  <div class="row" style="margin-bottom:1rem">
     <div class="steps" id="q-steps"></div>
-    <span class="muted" id="q-counter" style="margin-left:auto;font-size:12px"></span>
+    <span class="muted" id="q-counter" style="margin-left:auto"></span>
   </div>
   <div class="card">
-    <div id="q-phase-tag"></div>
-    <div id="q-type-badge"></div>
-    <p style="font-size:15px;font-weight:500;margin-bottom:1rem" id="q-text"></p>
-    <textarea id="q-answer" placeholder="Escribe tu respuesta aquí…"></textarea>
-    <div style="display:flex;justify-content:space-between;margin-top:.75rem">
+    <div class="row" style="margin-bottom:.6rem"><span id="q-phase"></span><span id="q-type"></span></div>
+    <p style="font-size:16px;font-weight:500;margin-bottom:1rem;line-height:1.5" id="q-text"></p>
+    <textarea id="q-answer" placeholder="Escribe tu respuesta aquí…" oninput="autosaveAnswer()"></textarea>
+    <div class="row" style="justify-content:space-between;margin-top:.75rem">
       <button class="btn" id="q-prev" onclick="prevQ()">← Anterior</button>
-      <button class="btn btn-primary" id="q-next" onclick="nextQ()">Siguiente →</button>
+      <span class="saved" id="q-saved"></span>
+      <button class="btn btn-dark" id="q-next" onclick="nextQ()">Siguiente →</button>
     </div>
   </div>
 </div>
 
-<div id="screen-view" class="screen">
-  <div class="nav">
-    <button class="btn nav-back" onclick="goToQuestions()">← Responder</button>
-    <span class="nav-title">Vista colaborativa</span>
-    <button class="btn nav-right" onclick="refreshView()" id="refresh-btn">↺</button>
+<!-- ═══════════ VIEW ═══════════ -->
+<div id="screen-view" class="screen wide">
+  <div class="row" style="margin-bottom:1rem">
+    <button class="btn btn-sm" onclick="goToQuestions()">← Responder</button>
+    <span class="grow"></span>
+    <button class="btn btn-sm" onclick="exportJSON()">↓ JSON</button>
   </div>
   <div class="stats" id="view-stats"></div>
-  <div class="tabs">
-    <div class="tab active" id="tab-all" onclick="switchTab('all')">Todas</div>
-    <div class="tab" id="tab-att" onclick="switchTab('att')">Atender</div>
-    <div class="tab" id="tab-int" onclick="switchTab('int')">Interpretar</div>
-    <div class="tab" id="tab-dec" onclick="switchTab('dec')">Decidir</div>
-    <div class="tab" id="tab-map" onclick="switchTab('map')">Mapa IA</div>
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tab-resp" onclick="switchTab('resp')">Respuestas</button>
+    <button class="tab" id="tab-map" onclick="switchTab('map')">Mapa IA</button>
+    <button class="tab" id="tab-report" onclick="switchTab('report')">Informe</button>
   </div>
   <div id="view-content"></div>
 </div>
 
+<div id="tip"></div>
+
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 <script>
-// ── FIREBASE ──
-firebase.initializeApp({
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const firebaseConfig = {
   apiKey: "AIzaSyAzR0XcOYioyYUW68LSmcPNOCOtkevJXG8",
   authDomain: "noticing-663b2.firebaseapp.com",
   databaseURL: "https://noticing-663b2-default-rtdb.firebaseio.com",
@@ -192,441 +337,1025 @@ firebase.initializeApp({
   storageBucket: "noticing-663b2.appspot.com",
   messagingSenderId: "115663214141",
   appId: "1:115663214141:web:9e44ad0638e8d85950fc54"
-});
+};
+firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
-const DB = 'sessions_v2';
 
-// ── QUESTIONS ──
+const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
+// Modelo configurado en el Worker. Si el Worker devuelve `model`, se usa el real.
+const AI_DEFAULT = {model:'poolside/laguna-s-2.1:free', provider:'OpenRouter'};
+const AI_TIMEOUT_MS = 240000;
+const DOCX_CDN = 'https://cdn.jsdelivr.net/npm/docx@9.9.0/dist/index.iife.js';
+
+// ═══════════════════════════════════════════
+// INSTRUMENT
+// ═══════════════════════════════════════════
 const QUESTIONS = [
-  {id:'att-L', phase:'att', phaseLabel:'Atender',     type:'L', typeLabel:'Lectura de bitácora',
+  {id:'att-L', n:1, phase:'att', phaseLabel:'Atender', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué de lo que describe la bitácora te llamó la atención y por qué?'},
-  {id:'att-R', phase:'att', phaseLabel:'Atender',     type:'R', typeLabel:'Reflexiva',
+  {id:'att-R', n:2, phase:'att', phaseLabel:'Atender', type:'R', typeLabel:'Reflexiva',
    text:'¿Qué detalle del episodio te pareció pedagógicamente significativo desde tu posición en la tríada, y por qué ese detalle?'},
-  {id:'int-L', phase:'int', phaseLabel:'Interpretar', type:'L', typeLabel:'Lectura de bitácora',
+  {id:'int-L', n:3, phase:'int', phaseLabel:'Interpretar', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué explicación o sentido le da el estudiante en su bitácora a lo que ocurrió? ¿Qué conecta con el aprendizaje de ciencias?'},
-  {id:'int-R', phase:'int', phaseLabel:'Interpretar', type:'R', typeLabel:'Reflexiva',
+  {id:'int-R', n:4, phase:'int', phaseLabel:'Interpretar', type:'R', typeLabel:'Reflexiva',
    text:'¿Cómo interpretas tú ese episodio? ¿En qué tu lectura coincide o difiere de la del estudiante, y qué lo explica?'},
-  {id:'dec-L', phase:'dec', phaseLabel:'Decidir',     type:'L', typeLabel:'Lectura de bitácora',
+  {id:'dec-L', n:5, phase:'dec', phaseLabel:'Decidir', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué decisión pedagógica propone o anticipa el estudiante en su bitácora frente a ese episodio y qué la fundamenta?'},
-  {id:'dec-R', phase:'dec', phaseLabel:'Decidir',     type:'R', typeLabel:'Reflexiva',
+  {id:'dec-R', n:6, phase:'dec', phaseLabel:'Decidir', type:'R', typeLabel:'Reflexiva',
    text:'¿Qué decidirías o recomendarías tú, y en qué se basa esa decisión en lo que el estudiante ya comprende sobre la enseñanza de las ciencias?'},
-  {id:'dec-D', phase:'dec', phaseLabel:'Decidir',     type:'D', typeLabel:'Dialógica',
+  {id:'dec-D', n:7, phase:'dec', phaseLabel:'Decidir', type:'D', typeLabel:'Dialógica',
    text:'¿Qué le preguntarías a otro miembro de la tríada sobre qué haría o recomendaría frente a este episodio?'}
 ];
+const QBY = Object.fromEntries(QUESTIONS.map(q=>[q.id,q]));
+const ROLE_KEYS = ['student','tutor','mentor'];
+const ROLE = {
+  student:{label:'Estudiante en formación', short:'Estudiante', abbr:'E', c:'#5A4FCF', l:'#EEEDFE', d:'#3C3489'},
+  tutor:  {label:'Tutor universitario',      short:'Tutor',      abbr:'T', c:'#0F8A6A', l:'#E1F5EE', d:'#085041'},
+  mentor: {label:'Profesor mentor',          short:'Mentor',     abbr:'M', c:'#C2620F', l:'#FAEEDA', d:'#633806'}
+};
+const ALACT = ['Acción','Looking Back','Awareness','Alternatives','Trial'];
+const NOTICING = ['Atender','Interpretar','Decidir'];
+const PRACTICES = ['NdC','Indagación','Modelización','Argumentación','N/I'];
+const PRACTICE_LABEL = {'NdC':'NdC','Indagación':'Indagación','Modelización':'Modelización','Argumentación':'Argumentación','N/I':'No ident.'};
+const META_FIELDS = [
+  {k:'carrera', label:'Carrera', def:'Pedagogía en Química y Ciencias Naturales'},
+  {k:'practicante', label:'Nombre del profesor en formación'},
+  {k:'mentor', label:'Nombre del Mentor'},
+  {k:'centro', label:'Centro de Práctica'},
+  {k:'tutor', label:'Nombre Tutor PUCV'},
+  {k:'fecha', label:'Fecha de la reunión', type:'date'},
+  {k:'hora_inicio', label:'Hora de inicio', type:'time'},
+  {k:'hora_termino', label:'Hora de término', type:'time'},
+  {k:'n_triada', label:'Número de tríada en el semestre'}
+];
 
-const ROLES = {student:'Estudiante', tutor:'Tutor universitario', mentor:'Profesor mentor'};
-const PILL_CLS = {student:'pill-student', tutor:'pill-tutor', mentor:'pill-mentor'};
-const BUBBLE_CLS = {student:'bubble-student', tutor:'bubble-tutor', mentor:'bubble-mentor'};
-const PHASE_CLS = {att:'phase-att', int:'phase-int', dec:'phase-dec'};
-const TYPE_CLS  = {L:'qtype-L', R:'qtype-R', D:'qtype-D'};
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const S = {role:null, sid:null, currentQ:0, all:{}, meta:{}, presence:{}, map:null, report:null, edits:{},
+  ai:{state:'idle'}, tab:'resp', filter:'all', hidden:{}, refs:[], mapSeen:0, reportSeen:0};
 
-// ── STATE ──
-let S = {role:null, sessionId:null, currentQ:0, answers:{}, viewTab:'all', lobbyInterval:null};
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const P = path => 'sessions/'+S.sid+(path?'/'+path:'');
+const lsGet = k => { try{return localStorage.getItem(k);}catch(e){return null;} };
+const lsSet = (k,v) => { try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,v);}catch(e){} };
+function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+// one timer per key, so fast edits across fields are never dropped
+function debounceByKey(fn, ms){ const t={}; return (k,...a)=>{ clearTimeout(t[k]); t[k]=setTimeout(()=>fn(k,...a), ms); }; }
+function pad2(n){return String(n).padStart(2,'0');}
+function todayISO(){const d=new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());}
+function nowHM(){const d=new Date();return pad2(d.getHours())+':'+pad2(d.getMinutes());}
+function fmtDate(ts){ if(!ts) return ''; return new Date(ts).toLocaleString('es-CL',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function fmtSecs(ms){ const s=Math.max(0,Math.round(ms/1000)); return s<60? s+' s' : Math.floor(s/60)+' min '+pad2(s%60)+' s'; }
 
-// ── SCREENS ──
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
+  $('screen-'+id).classList.add('active');
+  $('session-head').classList.toggle('on', id!=='home');
   window.scrollTo(0,0);
 }
-
-// ── HOME ──
 function selectRole(role){
   S.role = role;
-  ['student','tutor','mentor'].forEach(r=>
-    document.getElementById('btn-'+r).classList.toggle('selected', r===role));
+  ROLE_KEYS.forEach(r=>$('btn-'+r).classList.toggle('selected', r===role));
 }
-function showError(msg){
-  const el=document.getElementById('home-error');
-  el.textContent=msg; el.style.display='block';
-  setTimeout(()=>el.style.display='none',3000);
+function homeError(msg){
+  const el=$('home-error'); el.textContent=msg; el.style.display='block';
+  setTimeout(()=>el.style.display='none', 3500);
 }
-function createSession(){
-  if(!S.role){showError('Primero selecciona tu rol');return;}
-  S.sessionId = Math.random().toString(36).substr(2,5).toUpperCase();
-  enterLobby();
+async function createSession(){
+  if(!S.role) return homeError('Primero selecciona tu rol');
+  S.sid = Math.random().toString(36).substr(2,5).toUpperCase();
+  const meta = {fecha:todayISO(), hora_inicio:nowHM(), carrera:'Pedagogía en Química y Ciencias Naturales', createdAt:Date.now()};
+  await db.ref(P('meta')).update(meta);
+  enterSession();
 }
 function joinSession(){
-  if(!S.role){showError('Primero selecciona tu rol');return;}
-  const code = document.getElementById('session-input').value.trim().toUpperCase();
-  if(!code){showError('Ingresa un código de sesión');return;}
-  S.sessionId = code;
-  enterLobby();
-}
-
-// ── LOBBY ──
-async function enterLobby(){
-  await db.ref(DB+'/'+S.sessionId+'/presence/'+S.role).set({role:S.role, label:ROLES[S.role], ts:Date.now()});
-  document.getElementById('lobby-code').textContent = S.sessionId;
-  show('lobby');
-  updateLobby();
-  S.lobbyInterval = setInterval(updateLobby, 4000);
-  db.ref(DB+'/'+S.sessionId+'/map').on('value', snap=>{
-    const val = snap.val();
-    if(!val||!val.result) return;
-    if(document.getElementById('screen-view').classList.contains('active') && S.viewTab==='map')
-      renderMapVisual(val.result);
-    const t = document.getElementById('tab-map');
-    if(t && S.viewTab!=='map'){t.textContent='Mapa IA ●'; t.style.color='var(--teal-dark)';}
-  });
-}
-async function updateLobby(){
-  const snap = await db.ref(DB+'/'+S.sessionId+'/presence').get();
-  const val = snap.val()||{};
-  const present = Object.keys(val);
-  const el = document.getElementById('lobby-members');
-  if(!present.length){el.innerHTML='<div class="empty">Esperando participantes…</div>';return;}
-  el.innerHTML = present.map(r=>
-    '<div class="member-row"><span class="pill '+PILL_CLS[r]+'">'+(ROLES[r]||r)+'</span>'
-    +'<span style="color:var(--teal);font-size:13px;margin-left:auto">✓ conectado</span></div>'
-  ).join('');
-}
-function startSession(){
-  clearInterval(S.lobbyInterval);
-  S.currentQ=0; S.answers={};
-  show('question'); renderQuestion();
+  if(!S.role) return homeError('Primero selecciona tu rol');
+  const code = $('session-input').value.trim().toUpperCase();
+  if(!code) return homeError('Ingresa un código de sesión');
+  S.sid = code; enterSession();
 }
 function goHome(){
-  clearInterval(S.lobbyInterval);
-  S.role=null; S.sessionId=null; S.currentQ=0; S.answers={};
-  ['student','tutor','mentor'].forEach(r=>document.getElementById('btn-'+r).classList.remove('selected'));
+  detachListeners();
+  if(S.sid && S.role) db.ref(P('presence/'+S.role)).update({online:false});
+  lsSet('ntr_session', null);
+  Object.assign(S,{sid:null, currentQ:0, all:{}, meta:{}, presence:{}, map:null, report:null, edits:{}, ai:{state:'idle'}});
   show('home');
 }
+function startQuestions(){ S.currentQ = firstUnanswered(); show('question'); renderQuestion(); }
+function goToQuestions(){ show('question'); renderQuestion(); }
+function goToView(){ show('view'); renderView(); }
 
-// ── QUESTIONS ──
-function renderQuestion(){
-  const q = QUESTIONS[S.currentQ];
-  const total = QUESTIONS.length;
-  document.getElementById('q-pill').innerHTML = '<span class="pill '+PILL_CLS[S.role]+'">'+ROLES[S.role]+'</span>';
-  document.getElementById('q-session-label').textContent = 'Sesión '+S.sessionId;
-  document.getElementById('q-phase-tag').innerHTML = '<span class="phase '+PHASE_CLS[q.phase]+'">'+q.phaseLabel+'</span>';
-  document.getElementById('q-type-badge').innerHTML = '<span class="qtype '+TYPE_CLS[q.type]+'">'+q.typeLabel+'</span>';
-  document.getElementById('q-text').textContent = q.text;
-  document.getElementById('q-answer').value = S.answers[S.currentQ]||'';
-  document.getElementById('q-counter').textContent = (S.currentQ+1)+' / '+total;
-  document.getElementById('q-prev').style.visibility = S.currentQ===0?'hidden':'visible';
-  document.getElementById('q-next').textContent = S.currentQ===total-1?'Ver respuestas →':'Siguiente →';
-  document.getElementById('q-progress').style.width = Math.round((S.currentQ/(total-1))*100)+'%';
-  document.getElementById('q-steps').innerHTML = QUESTIONS.map((_,i)=>{
-    const cls = i<S.currentQ?'step-done':i===S.currentQ?'step-active':'step-pending';
-    return '<div class="step-dot '+cls+'">'+(i+1)+'</div>';
+// ═══════════════════════════════════════════
+// SESSION + REALTIME LISTENERS
+// ═══════════════════════════════════════════
+async function enterSession(){
+  lsSet('ntr_session', JSON.stringify({sid:S.sid, role:S.role}));
+  const pref = db.ref(P('presence/'+S.role));
+  await pref.set({role:S.role, label:ROLE[S.role].label, ts:Date.now(), online:true});
+  pref.onDisconnect().update({online:false, ts:firebase.database.ServerValue.TIMESTAMP});
+  $('lobby-code').textContent = S.sid;
+  $('sh-code').textContent = S.sid;
+  $('sh-role').innerHTML = '<span class="pill pill-'+S.role+'">'+ROLE[S.role].short+'</span>';
+  buildMetaForm();
+  attachListeners();
+  show('lobby');
+}
+function listen(path, cb){ const r=db.ref(P(path)); r.on('value', s=>cb(s.val())); S.refs.push(r); }
+function detachListeners(){ S.refs.forEach(r=>r.off()); S.refs=[]; }
+function attachListeners(){
+  detachListeners();
+  listen('presence', v=>{ S.presence=v||{}; renderPresence(); });
+  listen('answers', v=>{ S.all=v||{}; renderPresence(); onDataChange('answers'); });
+  listen('meta', v=>{ S.meta=v||{}; syncMetaInputs(); onDataChange('meta'); });
+  listen('map', v=>{ S.map=v||null; onDataChange('map'); });
+  listen('report', v=>{ S.report=v||null; onDataChange('report'); });
+  listen('report_edits', v=>{ S.edits=v||{}; onDataChange('edits'); });
+  listen('ai_status', v=>{ S.ai=v||{state:'idle'}; renderAIStatus(); });
+}
+function onDataChange(kind){
+  const onView = $('screen-view').classList.contains('active');
+  // badges
+  if(kind==='map' && S.map && S.tab!=='map' && S.map.ts!==S.mapSeen) $('tab-map').innerHTML='Mapa IA<span class="badge"></span>';
+  if(kind==='report' && S.report && S.tab!=='report' && S.report.ts!==S.reportSeen) $('tab-report').innerHTML='Informe<span class="badge"></span>';
+  if(!onView) return;
+  renderStats();
+  if(S.tab==='resp' && (kind==='answers')) renderResponses();
+  if(S.tab==='map' && (kind==='map' || kind==='answers')) renderMapTab();
+  if(S.tab==='report'){
+    if(kind==='edits' || kind==='meta') updateReportFields();
+    else if(kind==='report' || kind==='map') renderReportTab();
+  }
+}
+function countAnswers(role){ const a=S.all[role]||{}; return QUESTIONS.filter(q=>a[q.id]?.text?.trim()).length; }
+function renderPresence(){
+  $('sh-pres').innerHTML = ROLE_KEYS.map(r=>{
+    const p=S.presence[r]; const on = p && p.online!==false;
+    return '<span class="pres-chip'+(on?' online':'')+'" title="'+ROLE[r].label+(on?' · conectado':' · desconectado')+'"><span class="pres-dot"></span><b style="color:'+ROLE[r].d+'">'+ROLE[r].abbr+'</b> '+countAnswers(r)+'/'+QUESTIONS.length+'</span>';
   }).join('');
 }
-async function nextQ(){
-  const text = document.getElementById('q-answer').value.trim();
-  S.answers[S.currentQ] = text;
-  const q = QUESTIONS[S.currentQ];
-  if(text) await db.ref(DB+'/'+S.sessionId+'/answers/'+S.role+'/'+q.id).set(
-    {text, role:S.role, phase:q.phase, type:q.type, qid:q.id, ts:Date.now()}
-  );
-  if(S.currentQ < QUESTIONS.length-1){ S.currentQ++; renderQuestion(); }
-  else { show('view'); await renderView(); }
-}
-function prevQ(){
-  S.answers[S.currentQ] = document.getElementById('q-answer').value.trim();
-  if(S.currentQ>0){S.currentQ--;renderQuestion();}
-}
-function goToQuestions(){show('question');renderQuestion();}
-function goToView(){show('view');renderView();}
 
-// ── VIEW ──
-function switchTab(tab){
-  S.viewTab=tab;
-  ['all','att','int','dec','map'].forEach(t=>{
-    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+// ── Meta form (lobby) ──
+const saveMeta = debounceByKey((k,v)=>{ db.ref(P('meta/'+k)).set(v); }, 500);
+function buildMetaForm(){
+  $('meta-form').innerHTML = META_FIELDS.map(f=>
+    '<div><p class="label">'+esc(f.label)+'</p><input type="'+(f.type||'text')+'" data-meta="'+f.k+'" placeholder="'+esc(f.def||'')+'"></div>'
+  ).join('');
+  document.querySelectorAll('[data-meta]').forEach(el=>{
+    el.oninput = ()=>{ S.meta[el.dataset.meta]=el.value; saveMeta(el.dataset.meta, el.value); };
   });
-  if(tab==='map'){
-    const t=document.getElementById('tab-map');
-    if(t){t.textContent='Mapa IA';t.style.color='';}
-    renderMap();
-  } else renderView();
 }
-async function refreshView(){
-  const btn=document.getElementById('refresh-btn');
-  btn.innerHTML='<span class="spinner"></span>';
-  await renderView(); btn.innerHTML='↺';
+function syncMetaInputs(){
+  document.querySelectorAll('#screen-lobby [data-meta]').forEach(el=>{
+    if(document.activeElement===el) return;
+    el.value = S.meta[el.dataset.meta]||'';
+  });
 }
-async function loadAllAnswers(){
-  const snap = await db.ref(DB+'/'+S.sessionId+'/answers').get();
-  return snap.val()||{};
-}
-async function renderView(){
-  const container = document.getElementById('view-content');
-  container.innerHTML = '<div class="empty"><span class="spinner"></span> Cargando…</div>';
-  const all = await loadAllAnswers();
-  document.getElementById('view-stats').innerHTML = ['student','tutor','mentor'].map(r=>{
-    const count = all[r] ? Object.keys(all[r]).length : 0;
-    return '<div class="stat"><div class="stat-n">'+count+'/'+QUESTIONS.length+'</div>'
-      +'<div class="stat-l">'+ROLES[r].split(' ')[0]+'</div></div>';
+
+// ═══════════════════════════════════════════
+// QUESTIONS
+// ═══════════════════════════════════════════
+function myAnswer(qid){ return S.all[S.role]?.[qid]?.text || ''; }
+function firstUnanswered(){ const i=QUESTIONS.findIndex(q=>!myAnswer(q.id).trim()); return i<0?0:i; }
+function renderQuestion(){
+  const q=QUESTIONS[S.currentQ], total=QUESTIONS.length;
+  $('q-phase').innerHTML='<span class="tag">'+q.n+' · '+q.phaseLabel+'</span>';
+  $('q-type').innerHTML='<span class="qtype">'+q.type+' · '+q.typeLabel+'</span>';
+  $('q-text').textContent=q.text;
+  $('q-answer').value=myAnswer(q.id);
+  $('q-saved').textContent = myAnswer(q.id) ? 'Guardado' : '';
+  $('q-counter').textContent=(S.currentQ+1)+' / '+total;
+  $('q-prev').style.visibility=S.currentQ===0?'hidden':'visible';
+  $('q-next').textContent=S.currentQ===total-1?'Ver tríada →':'Siguiente →';
+  $('q-progress').style.width=Math.round(QUESTIONS.filter(x=>myAnswer(x.id).trim()).length/total*100)+'%';
+  $('q-steps').innerHTML=QUESTIONS.map((x,i)=>{
+    const cls = i===S.currentQ?'active':(myAnswer(x.id).trim()?'done':'');
+    return '<div class="step-dot '+cls+'" title="'+esc(x.phaseLabel+' · '+x.typeLabel)+'" onclick="jumpQ('+i+')">'+x.n+'</div>';
   }).join('');
-  if(S.viewTab==='map'){renderMap();return;}
-  const phases = S.viewTab==='all' ? ['att','int','dec'] : [S.viewTab];
-  let html='';
-  for(const phase of phases){
-    for(const q of QUESTIONS.filter(q=>q.phase===phase)){
-      const bubbles = ['student','tutor','mentor'].map(role=>{
-        const ans = all[role]?.[q.id]?.text;
-        if(!ans) return '';
-        return '<div class="bubble '+BUBBLE_CLS[role]+'">'
-          +'<div class="bubble-label">'+ROLES[role]+'</div><div>'+ans+'</div></div>';
-      }).join('');
-      html += '<div class="card">'
-        +'<span class="phase '+PHASE_CLS[q.phase]+'">'+q.phaseLabel+'</span>'
-        +'<span class="qtype '+TYPE_CLS[q.type]+'" style="margin-left:6px">'+q.typeLabel+'</span>'
-        +'<p style="font-size:13px;color:var(--text2);margin:6px 0 8px">'+q.text+'</p>'
-        +(bubbles||'<div class="empty" style="padding:.5rem">Sin respuestas aún</div>')
-        +'</div>';
-    }
-  }
-  container.innerHTML = html||'<div class="empty">No hay respuestas en esta vista.</div>';
+}
+async function saveCurrentAnswer(){
+  const q=QUESTIONS[S.currentQ]; const text=$('q-answer').value.trim();
+  const ref=db.ref(P('answers/'+S.role+'/'+q.id));
+  if(text) await ref.set({text, role:S.role, phase:q.phase, type:q.type, qid:q.id, ts:Date.now()});
+  else if(myAnswer(q.id)) await ref.remove();
+  $('q-saved').textContent = text ? 'Guardado ✓' : '';
+}
+const _autosave = debounce(saveCurrentAnswer, 800);
+function autosaveAnswer(){ $('q-saved').textContent='Escribiendo…'; _autosave(); }
+async function nextQ(){
+  await saveCurrentAnswer();
+  if(S.currentQ<QUESTIONS.length-1){ S.currentQ++; renderQuestion(); }
+  else goToView();
+}
+async function prevQ(){ await saveCurrentAnswer(); if(S.currentQ>0){S.currentQ--; renderQuestion();} }
+async function jumpQ(i){ await saveCurrentAnswer(); S.currentQ=i; renderQuestion(); }
+
+// ═══════════════════════════════════════════
+// VIEW
+// ═══════════════════════════════════════════
+function switchTab(tab){
+  S.tab=tab;
+  ['resp','map','report'].forEach(t=>$('tab-'+t).classList.toggle('active', t===tab));
+  if(tab==='map'){ $('tab-map').textContent='Mapa IA'; S.mapSeen=S.map?.ts; }
+  if(tab==='report'){ $('tab-report').textContent='Informe'; S.reportSeen=S.report?.ts; }
+  renderView();
+}
+function renderStats(){
+  $('view-stats').innerHTML = ROLE_KEYS.map(r=>
+    '<div class="stat" style="border-top:3px solid '+ROLE[r].c+'"><div class="stat-n">'+countAnswers(r)+'<span style="font-size:13px;color:var(--ink3);font-weight:500">/'+QUESTIONS.length+'</span></div><div class="stat-l">'+ROLE[r].short+'</div></div>'
+  ).join('');
+}
+function renderView(){
+  renderStats();
+  if(S.tab==='resp') renderResponses();
+  else if(S.tab==='map') renderMapTab();
+  else renderReportTab();
+}
+function renderResponses(){
+  const f=S.filter;
+  let html='<div class="chips">'+[['all','Todas'],['att','Atender'],['int','Interpretar'],['dec','Decidir']].map(([k,l])=>
+    '<button class="chip'+(f===k?' active':'')+'" onclick="S.filter=\''+k+'\';renderResponses()">'+l+'</button>').join('')+'</div>';
+  QUESTIONS.filter(q=>f==='all'||q.phase===f).forEach(q=>{
+    const bubbles = ROLE_KEYS.map(r=>{
+      const a=S.all[r]?.[q.id]?.text; if(!a) return '';
+      return '<div class="bubble bubble-'+r+'"><div class="bubble-label">'+ROLE[r].label+'</div>'+esc(a)+'</div>';
+    }).join('');
+    html+='<div class="card"><div class="row" style="margin-bottom:.4rem"><span class="tag">'+q.n+' · '+q.phaseLabel+'</span><span class="qtype">'+q.type+' · '+q.typeLabel+'</span></div>'
+      +'<p style="font-size:13.5px;color:var(--ink2)">'+esc(q.text)+'</p>'
+      +(bubbles||'<div class="empty" style="padding:.6rem">Sin respuestas aún</div>')+'</div>';
+  });
+  $('view-content').innerHTML=html;
 }
 
-// ── AI MAP — Groq via Cloudflare Worker ──
-const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
+// ═══════════════════════════════════════════
+// AI STATUS (synced across devices)
+// ═══════════════════════════════════════════
+const STAGES = ['Recopilar','Enviar','Generar','Validar JSON','Guardar','Listo'];
+function modelInfo(slug){
+  slug = slug || AI_DEFAULT.model;
+  const [vendor, rest] = slug.includes('/') ? slug.split('/') : ['', slug];
+  const free = /:free$/.test(slug);
+  const known = {'poolside/laguna-s-2.1':'Laguna S 2.1'};
+  const base = slug.replace(/:free$/,'');
+  const name = known[base] || (rest||slug).replace(/:free$/,'').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+  const vendorName = vendor ? vendor.charAt(0).toUpperCase()+vendor.slice(1) : '';
+  return {slug, name, vendor:vendorName, free};
+}
+function setStatus(patch){
+  S.ai = Object.assign({}, S.ai, patch, {updatedAt:Date.now()});
+  renderAIStatus();
+  if(S.sid) db.ref(P('ai_status')).update(Object.assign({}, patch, {updatedAt:Date.now()})).catch(()=>{});
+}
+function toggleAIDetail(){
+  const b=$('ai-box'); b.classList.toggle('open');
+  b.querySelector('.ai-top').setAttribute('aria-expanded', b.classList.contains('open'));
+}
+function renderAIStatus(){
+  const a=S.ai||{state:'idle'};
+  const mi=modelInfo(a.model || S.map?.model || AI_DEFAULT.model);
+  $('ai-model').textContent = mi.name + (mi.vendor?' · '+mi.vendor:'');
+  $('ai-model').title = mi.slug;
+  $('ai-free').style.display = mi.free?'':'none';
+  $('ai-prov').textContent = 'vía '+(a.provider||AI_DEFAULT.provider);
+  const stale = a.state==='running' && Date.now()-(a.updatedAt||0) > AI_TIMEOUT_MS+30000;
+  const state = stale ? 'error' : (a.state||'idle');
+  $('ai-dot').className = 'ai-dot '+state;
+  const who = a.by && a.by!==S.role ? ' ('+ROLE[a.by]?.short+')' : '';
+  const taskName = a.task==='report' ? 'Informe' : (a.task==='map' ? 'Mapa' : (a.task==='ping'?'Conexión':''));
+  let txt='En espera';
+  if(state==='running') txt = (taskName?taskName+': ':'')+(STAGES[a.stage]||'Procesando')+'…'+who;
+  else if(state==='done') txt = (taskName?taskName+' listo':'Listo')+(a.ms?' · '+fmtSecs(a.ms):'')+(a.tokens?' · '+a.tokens+' tok':'');
+  else if(state==='ok') txt = 'En línea'+(a.ms?' · '+fmtSecs(a.ms):'');
+  else if(state==='error') txt = stale ? 'Sin respuesta (proceso interrumpido)' : 'Error'+(taskName?' en '+taskName.toLowerCase():'')+(a.msg?': '+a.msg:'');
+  $('ai-state').textContent = txt;
+  $('ai-state').title = txt;
+  const prog=$('ai-progress'), fill=$('ai-progress-fill');
+  prog.classList.toggle('indet', state==='running' && a.stage===2);
+  fill.style.background = state==='error' ? 'var(--err)' : (state==='running'?'var(--st)':'var(--ok)');
+  fill.style.width = state==='running' ? Math.round(((a.stage||0)+0.5)/STAGES.length*100)+'%' : (state==='done'||state==='ok'?'100%':(state==='error'?'100%':'0%'));
+  $('ai-stages').innerHTML = STAGES.map((s,i)=>{
+    let c='';
+    if(state==='running'){ c = i<a.stage?'done':(i===a.stage?'cur':''); }
+    else if(state==='done'){ c='done'; }
+    else if(state==='error' && a.stage!=null){ c = i<a.stage?'done':(i===a.stage?'err':''); }
+    return '<span class="ai-stage '+c+'">'+(i+1)+'. '+s+'</span>';
+  }).join('');
+  const kv = [
+    ['Modelo', mi.slug],
+    ['Proveedor', (a.provider||AI_DEFAULT.provider)+' · Cloudflare Worker'],
+    ['Tarea', taskName||'—'],
+    ['Iniciado por', a.by?ROLE[a.by]?.label:'—'],
+    ['Respuesta', a.chars? a.chars.toLocaleString('es-CL')+' caracteres':'—'],
+    ['Tokens', a.usage? (a.usage.prompt_tokens||'?')+' entrada · '+(a.usage.completion_tokens||'?')+' salida':'—'],
+    ['Última actualización', a.updatedAt?fmtDate(a.updatedAt):'—']
+  ];
+  if(a.msg && state==='error') kv.push(['Detalle', a.msg]);
+  $('ai-kv').innerHTML = kv.map(([k,v])=>'<dt>'+k+'</dt><dd>'+esc(v)+'</dd>').join('');
+  tickTimer();
+}
+function tickTimer(){
+  const a=S.ai||{};
+  if(a.state==='running' && a.startedAt) $('ai-timer').textContent = fmtSecs(Date.now()-a.startedAt).replace(' min ',':').replace(' s','s');
+  else $('ai-timer').textContent = '';
+}
+setInterval(tickTimer, 500);
 
-async function renderMap(force=false){
-  const container = document.getElementById('view-content');
-  if(!force){
-    const cached = await db.ref(DB+'/'+S.sessionId+'/map').get();
-    if(cached.val()?.result){ renderMapVisual(cached.val().result); return; }
+// ═══════════════════════════════════════════
+// AI CALLS
+// ═══════════════════════════════════════════
+async function callAI(task, messages){
+  const t0 = Date.now();
+  setStatus({state:'running', task, stage:1, startedAt:t0, by:S.role, msg:'', chars:0, usage:null, model:S.ai.model||AI_DEFAULT.model});
+  const ctrl = new AbortController();
+  const to = setTimeout(()=>ctrl.abort(), AI_TIMEOUT_MS);
+  let res;
+  try{
+    const p = fetch(WORKER_URL,{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({messages}), signal:ctrl.signal});
+    setStatus({stage:2});
+    res = await p;
+  }catch(e){
+    clearTimeout(to);
+    throw new Error(e.name==='AbortError' ? 'Tiempo de espera agotado ('+Math.round(AI_TIMEOUT_MS/1000)+' s)' : 'No se pudo contactar el Worker: '+e.message);
   }
+  clearTimeout(to);
+  let data;
+  try{ data = await res.json(); }catch(e){ throw new Error('Respuesta no válida del Worker (HTTP '+res.status+')'); }
+  const text = data.content?.[0]?.text || '';
+  const model = data.model || S.ai.model || AI_DEFAULT.model;
+  const usage = data.usage || null;
+  if(data.error && !text){
+    let msg = data.error;
+    if(/rate|429|limit/i.test(msg)) msg += ' — límite del modelo gratuito; espera un minuto y reintenta.';
+    throw new Error(msg);
+  }
+  if(!text) throw new Error('El modelo devolvió una respuesta vacía.');
+  setStatus({stage:3, chars:text.length, usage, model, provider:data.provider?('OpenRouter → '+data.provider):AI_DEFAULT.provider});
+  return {text, model, usage, ms:Date.now()-t0};
+}
+async function pingAI(ev){
+  if(ev) ev.stopPropagation();
+  if(S.ai.state==='running') return;
+  $('ai-ping').textContent='Probando…';
+  try{
+    const r = await callAI('ping', [{role:'user', content:'Responde solo con la palabra OK.'}]);
+    setStatus({state:'ok', stage:5, ms:r.ms, model:r.model});
+    $('ai-ping').textContent='Respondió en '+fmtSecs(r.ms)+': "'+r.text.trim().slice(0,30)+'"';
+  }catch(e){
+    setStatus({state:'error', msg:e.message});
+    $('ai-ping').textContent='';
+  }
+}
 
-  container.innerHTML = '<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">'
-    +'<span class="spinner"></span><span style="font-size:14px;color:var(--text2)">Analizando con IA…</span></div>'
-    +'<p class="muted" style="font-size:12px">Groq llama-3.3-70b está generando el mapa triádico.</p></div>';
+// ── JSON parsing with repair for truncated output ──
+function parseAIJson(raw){
+  let t = raw.replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/```json|```/gi,'').trim();
+  const s = t.indexOf('{');
+  if(s<0) throw new Error('La IA no devolvió JSON');
+  t = t.slice(s);
+  const e = t.lastIndexOf('}');
+  const attempts = [t.slice(0,e+1), t.slice(0,e+1).replace(/,\s*([}\]])/g,'$1')];
+  for(const a of attempts){ try{ return {data:JSON.parse(a), repaired:false}; }catch(_){} }
+  const r = repairJson(t);
+  if(r) return {data:r, repaired:true};
+  throw new Error('JSON inválido o truncado ('+t.length+' caracteres recibidos)');
+}
+function repairJson(t){
+  const stack=[], cuts=[]; let inStr=false, escp=false;
+  for(let i=0;i<t.length;i++){
+    const ch=t[i];
+    if(inStr){ if(escp){escp=false;continue;} if(ch==='\\'){escp=true;continue;} if(ch==='"') inStr=false; continue; }
+    if(ch==='"'){inStr=true;continue;}
+    if(ch==='{'||ch==='[') stack.push(ch==='{'?'}':']');
+    else if(ch==='}'||ch===']'){ stack.pop(); cuts.push({i:i+1, st:stack.slice()}); if(!stack.length) break; }
+    else if(ch===',') cuts.push({i, st:stack.slice()});
+  }
+  for(let k=cuts.length-1; k>=0 && k>cuts.length-80; k--){
+    const c=cuts[k];
+    const cand = t.slice(0,c.i).replace(/,\s*$/,'') + c.st.slice().reverse().join('');
+    try{ return JSON.parse(cand); }catch(_){}
+  }
+  return null;
+}
 
-  const all = await loadAllAnswers();
-  let answersText = '';
-  for(const role of ['student','tutor','mentor']){
-    if(!all[role]) continue;
-    answersText += '\n\n## '+ROLES[role].toUpperCase()+'\n';
+// ── Normalisers (models vary in labels) ──
+const deacc = s => String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+function normRole(s){ const x=deacc(s); if(/^(stu|est|pra)/.test(x)) return 'student'; if(/^tut/.test(x)) return 'tutor'; if(/^(men|pro)/.test(x)) return 'mentor'; return null; }
+function normAlact(s){ const x=deacc(s);
+  if(/^(acc|act)/.test(x)) return 'Acción';
+  if(/(look|mirar|retro|back)/.test(x)) return 'Looking Back';
+  if(/(aware|concien)/.test(x)) return 'Awareness';
+  if(/alter/.test(x)) return 'Alternatives';
+  if(/(trial|ensay|prueba)/.test(x)) return 'Trial';
+  return null; }
+function normNoticing(s, qid){ const x=deacc(s);
+  if(/^(aten|attend)/.test(x)) return 'Atender';
+  if(/^interp/.test(x)) return 'Interpretar';
+  if(/^(deci|decid)/.test(x)) return 'Decidir';
+  const q=QBY[qid]; return q? q.phaseLabel : 'Atender'; }
+function normPractice(s){ const x=deacc(s);
+  if(/(natur|nos|ndc)/.test(x)) return 'NdC';
+  if(/(indag|inquir)/.test(x)) return 'Indagación';
+  if(/model/.test(x)) return 'Modelización';
+  if(/argum/.test(x)) return 'Argumentación';
+  return 'N/I'; }
+function normDepth(s){ const x=deacc(s); if(x.startsWith('crit')) return 'crítico'; if(x.startsWith('anal')) return 'analítico'; return 'descriptivo'; }
+function normalizeResult(r){
+  const nodes = (r.nodes||[]).map(n=>{
+    const role = normRole(n.role); const qid = QBY[n.qid]? n.qid : null;
+    const alact = normAlact(n.alact);
+    if(!role || !qid || !alact) return null;
+    return {role, qid, n:QBY[qid].n, qtype:QBY[qid].type, alact, noticing:normNoticing(n.noticing, qid),
+      practice:normPractice(n.practice), movement:!!n.movement && n.movement!=='false',
+      movement_to:n.movement_to && n.movement_to!=='null' ? n.movement_to : null,
+      depth:normDepth(n.reflexive_depth), quote:n.key_quote||'', rationale:n.alact_rationale||''};
+  }).filter(Boolean);
+  // de-duplicate role+qid
+  const seen={}; const uniq = nodes.filter(n=>{ const k=n.role+n.qid; if(seen[k]) return false; seen[k]=1; return true; });
+  const arr = v => Array.isArray(v) ? v.filter(Boolean).map(String) : (v? [String(v)] : []);
+  const rp = {};
+  if(r.role_profiles) for(const [k,v] of Object.entries(r.role_profiles)){ const rr=normRole(k); if(rr) rp[rr]= typeof v==='string'? v : (v.summary||v.perfil||JSON.stringify(v)); }
+  return {nodes:uniq, convergences:arr(r.convergences), divergences:arr(r.divergences),
+    reflective_triggers:arr(r.reflective_triggers), alact_pattern:r.alact_pattern||'', summary:r.summary||'', role_profiles:rp};
+}
+
+// ── Prompt builders ──
+function answersBlock(){
+  let txt='';
+  for(const r of ROLE_KEYS){
+    if(!countAnswers(r)) continue;
+    txt += '\n\n## '+ROLE[r].label.toUpperCase()+' (role="'+r+'")\n';
     for(const q of QUESTIONS){
-      const ans = all[role]?.[q.id]?.text;
-      if(ans) answersText += '\n['+q.phaseLabel+' / '+q.typeLabel+' / '+q.id+']\n'+ans+'\n';
+      const a=S.all[r]?.[q.id]?.text;
+      if(a) txt += '\n['+q.id+' | '+q.phaseLabel+' · '+q.typeLabel+']\n'+a.trim()+'\n';
     }
   }
-  if(!answersText.trim()){
-    container.innerHTML='<div class="empty">No hay respuestas suficientes para generar el mapa.</div>';
+  return txt;
+}
+function expectedPairs(){
+  const out=[]; ROLE_KEYS.forEach(r=>QUESTIONS.forEach(q=>{ if(S.all[r]?.[q.id]?.text?.trim()) out.push(r+':'+q.id); })); return out;
+}
+const MAP_SYSTEM = `Eres un analista experto en noticing docente (Jacobs et al., 2010), el modelo ALACT de reflexión (Korthagen, 2001) y formación inicial de profesores de ciencias naturales.
+
+Analizas las respuestas de una tríada formativa (estudiante en formación, tutor universitario, profesor mentor) a un cuestionario de noticing reflexivo sobre un episodio pedagógico de la bitácora del estudiante.
+
+## TIPOS DE PREGUNTA (por dimensión Atender / Interpretar / Decidir)
+- Lectura (L): describe lo que dice la bitácora. Suele operar en Acción o Looking Back.
+- Reflexiva (R): el actor se posiciona desde su rol; "noticing del noticing". Suele operar en Awareness o Alternatives.
+- Dialógica (D): formula una pregunta a otro actor. Opera en Alternatives o Trial; si es superficial, Looking Back.
+
+## CRITERIOS ALACT (según el CONTENIDO, no el tipo de pregunta)
+- Acción: describe hechos sin distancia reflexiva.
+- Looking Back: reconstruye lo ocurrido con algo de distancia.
+- Awareness: toma conciencia de por qué notó eso, o de la brecha entre lo esperado y lo ocurrido.
+- Alternatives: genera perspectivas alternativas, cuestiona supuestos, propone otros marcos.
+- Trial: proyecta una acción futura concreta y fundamentada.
+Una respuesta R que solo describe hechos va a Looking Back, no a Awareness.
+
+## MOVIMIENTO
+movement=true si en una pregunta de una dimensión el actor ya opera en otra (p. ej. en Atender ya interpreta o decide); movement_to indica hacia cuál.
+
+## PRÁCTICA CIENTÍFICA del contenido de la respuesta
+Indagación | Modelización | Argumentación | Naturaleza de la ciencia | No identificable.
+
+## FORMATO
+Responde SOLO con JSON válido, sin texto previo, sin backticks, sin razonamiento visible. Sé breve: alact_rationale ≤ 15 palabras; key_quote ≤ 12 palabras copiadas literalmente; cada ítem de listas ≤ 30 palabras; 2 a 4 ítems por lista.
+{
+ "nodes":[{"role":"student|tutor|mentor","qid":"att-L|att-R|int-L|int-R|dec-L|dec-R|dec-D","alact":"Acción|Looking Back|Awareness|Alternatives|Trial","alact_rationale":"...","noticing":"Atender|Interpretar|Decidir","practice":"Indagación|Modelización|Argumentación|Naturaleza de la ciencia|No identificable","movement":false,"movement_to":null,"reflexive_depth":"descriptivo|analítico|crítico","key_quote":"..."}],
+ "convergences":["..."],
+ "divergences":["..."],
+ "reflective_triggers":["..."],
+ "alact_pattern":"2-3 frases sobre la trayectoria reflexiva de la tríada en conjunto",
+ "summary":"resumen del encuentro en 3-4 frases: foco del episodio, cómo se movió la reflexión entre preguntas y actores, y principal tensión",
+ "role_profiles":{"student":"1-2 frases","tutor":"1-2 frases","mentor":"1-2 frases"}
+}`;
+function mapUserMsg(){
+  const pairs = expectedPairs();
+  return (S.meta.episodio? 'EPISODIO (resumen de la bitácora):\n'+S.meta.episodio.trim()+'\n\n' : '')
+    + 'Genera exactamente '+pairs.length+' nodos, uno por cada par rol:pregunta respondido: '+pairs.join(', ')+'.\n'
+    + 'Respuestas de la tríada:'+answersBlock();
+}
+const REPORT_SYSTEM = `Eres asistente de coordinación de prácticas de la PUCV. Redactas el BORRADOR del acta "Reunión de Tríada Formativa" (Práctica Docente Final, pedagogía en ciencias naturales) a partir de las respuestas de la tríada y de un análisis previo de noticing reflexivo.
+
+Reglas: usa solo evidencia presente en las respuestas; no inventes nombres, cifras ni hechos; español formal de Chile, tercera persona; si no hay evidencia para un campo escribe "Sin evidencia suficiente en las respuestas". Cada ítem de lista ≤ 30 palabras, 2 a 4 ítems; párrafos ≤ 110 palabras.
+
+- factores_contextuales: factores contextuales y prioritarios del curso/centro que emergen en el episodio y en la conversación.
+- planificacion: cómo el profesor en formación podría considerar esos factores en la planificación para promover aprendizajes en todos sus estudiantes (según lo propuesto por la tríada).
+- mentor: retroalimentación del profesor mentor al profesor en formación, inferida de las respuestas del mentor.
+- practicante: autoevaluación del profesor en formación, inferida de sus propias respuestas.
+- observaciones: síntesis reflexiva del encuentro (trayectoria ALACT, convergencias, divergencias y nudos para el siguiente encuentro).
+- acuerdos: compromisos o próximos pasos concretos.
+
+Responde SOLO con JSON válido, sin backticks:
+{"factores_contextuales":"...","planificacion":"...","mentor":{"fortalezas":["..."],"aspectos_mejorar":["..."],"sugerencias":["..."]},"practicante":{"fortalezas":["..."],"aspectos_mejorar":["..."]},"observaciones":"...","acuerdos":["..."]}`;
+function reportUserMsg(){
+  const m=S.map?.result;
+  let analysis='';
+  if(m){
+    analysis = '\n\nANÁLISIS DE NOTICING PREVIO:\nPatrón ALACT: '+m.alact_pattern+'\nResumen: '+m.summary
+      +'\nConvergencias: '+m.convergences.join(' | ')+'\nDivergencias: '+m.divergences.join(' | ')+'\nNudos reflexivos: '+m.reflective_triggers.join(' | ');
+  }
+  return (S.meta.episodio? 'EPISODIO:\n'+S.meta.episodio.trim()+'\n\n':'')
+    + 'Centro de práctica: '+(S.meta.centro||'no indicado')+'\nRespuestas de la tríada:'+answersBlock()+analysis;
+}
+
+// ── Orchestration ──
+function aiBusyElsewhere(){
+  const a=S.ai||{};
+  return a.state==='running' && Date.now()-(a.updatedAt||0) < AI_TIMEOUT_MS+30000;
+}
+async function generateAnalysis(){
+  if(aiBusyElsewhere()){ alert('La IA ya está procesando una solicitud'+(S.ai.by?' iniciada por '+ROLE[S.ai.by]?.short:'')+'. Espera a que termine.'); return; }
+  if(!expectedPairs().length){ alert('Aún no hay respuestas para analizar.'); return; }
+  try{
+    setStatus({state:'running', task:'map', stage:0, startedAt:Date.now(), by:S.role, msg:''});
+    const r = await callAI('map', [{role:'system', content:MAP_SYSTEM},{role:'user', content:mapUserMsg()}]);
+    const {data, repaired} = parseAIJson(r.text);
+    const result = normalizeResult(data);
+    if(!result.nodes.length) throw new Error('El JSON no contiene nodos válidos.');
+    setStatus({stage:4});
+    await db.ref(P('map')).set({result, ts:Date.now(), model:r.model, ms:r.ms, usage:r.usage||null, by:S.role, repaired, expected:expectedPairs().length});
+    setStatus({state:'done', stage:5, ms:r.ms, tokens:r.usage?.total_tokens||null});
+  }catch(e){
+    setStatus({state:'error', msg:e.message});
     return;
   }
+  // stage 2: report draft
+  await generateReport(true);
+}
+async function generateReport(chained){
+  if(!chained && aiBusyElsewhere()){ alert('La IA ya está procesando otra solicitud. Espera a que termine.'); return; }
+  if(!expectedPairs().length){ alert('Aún no hay respuestas para redactar el informe.'); return; }
+  try{
+    setStatus({state:'running', task:'report', stage:0, startedAt:Date.now(), by:S.role, msg:''});
+    const r = await callAI('report', [{role:'system', content:REPORT_SYSTEM},{role:'user', content:reportUserMsg()}]);
+    const {data, repaired} = parseAIJson(r.text);
+    setStatus({stage:4});
+    await db.ref(P('report')).set({result:data, ts:Date.now(), model:r.model, ms:r.ms, usage:r.usage||null, by:S.role, repaired});
+    setStatus({state:'done', stage:5, ms:r.ms, tokens:r.usage?.total_tokens||null});
+  }catch(e){
+    setStatus({state:'error', msg:e.message});
+  }
+}
 
-  const systemPrompt = `Eres un experto en noticing docente (Jacobs et al. 2010) y modelo ALACT (Korthagen 2001) aplicado a formacion de profesores de ciencias naturales.
+// ═══════════════════════════════════════════
+// MAP TAB
+// ═══════════════════════════════════════════
+function compressNums(nums){
+  nums=[...new Set(nums)].sort((a,b)=>a-b); const out=[]; let i=0;
+  while(i<nums.length){ let j=i; while(j+1<nums.length && nums[j+1]===nums[j]+1) j++;
+    out.push(j-i>=1? nums[i]+'–'+nums[j] : String(nums[i])); i=j+1; }
+  return out.join(', ');
+}
+function clusterNodes(nodes){
+  const map={};
+  nodes.forEach(n=>{
+    const k=[n.role,n.alact,n.noticing,n.practice].join('|');
+    (map[k]=map[k]||{key:k, role:n.role, alact:n.alact, noticing:n.noticing, practice:n.practice, items:[]}).items.push(n);
+  });
+  Object.values(map).forEach(c=>{ c.items.sort((a,b)=>a.n-b.n); c.label=compressNums(c.items.map(i=>i.n)); c.movement=c.items.some(i=>i.movement); });
+  return map;
+}
 
-Vas a analizar las respuestas de una TRIADA FORMATIVA con tres actores distintos:
-- student = estudiante en formacion (profesor/a practicante)
-- tutor = tutor universitario (academico PUCV)  
-- mentor = profesor mentor (docente de aula)
+/* Trajectory grid — after Figs. 3–5: role groups × (Att/Int/Dec) columns, ALACT phases × practice sub-rows */
+function buildMapSVG(nodes, opt={}){
+  const hidden = opt.hidden||{};
+  const L=132, SUB=74, GAP=16, APP=112, H1=40, H2=30, RH=24, NP=PRACTICES.length;
+  const GW=3*SUB, W=L+3*GW+2*GAP+APP, BODY=ALACT.length*NP*RH, H=H1+H2+BODY;
+  const gx = r => L + r*(GW+GAP);
+  const cx = (r,c) => gx(r)+c*SUB+SUB/2;
+  const ry = (p,k) => H1+H2+p*NP*RH+k*RH+RH/2;
+  const F = 'Inter,Segoe UI,Arial,sans-serif', SERIF="'Source Serif 4',Georgia,serif";
+  let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" font-family="'+F+'" role="img" aria-label="Mapa de trayectoria reflexiva triádica: fases ALACT por dimensión de noticing y rol">';
+  s += '<defs>'+ROLE_KEYS.map(r=>'<marker id="ah-'+r+'" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="'+ROLE[r].c+'"/></marker>').join('')+'</defs>';
+  s += '<rect x="0.5" y="0.5" width="'+(W-1)+'" height="'+(H-1)+'" rx="10" fill="#ffffff" stroke="#d5d9e0"/>';
+  // left label column
+  s += '<rect x="1" y="'+(H1+H2)+'" width="'+(L-1)+'" height="'+(BODY-1)+'" fill="#f6f7f9"/>';
+  // headers
+  s += '<text x="16" y="'+(H1+H2/2+4)+'" font-size="11.5" font-weight="700" fill="#16181d" letter-spacing=".04em">FASE ALACT</text>';
+  s += '<text x="'+(W-APP+14)+'" y="'+(H1+H2/2+4)+'" font-size="11" font-weight="600" fill="#6b7280" letter-spacing=".05em">PRÁCTICA</text>';
+  s += '<line x1="0" y1="'+H1+'" x2="'+L+'" y2="'+H1+'" stroke="#e3e6ec"/>';
+  s += '<line x1="'+(W-APP)+'" y1="'+H1+'" x2="'+W+'" y2="'+H1+'" stroke="#e3e6ec"/>';
+  s += '<line x1="0" y1="'+(H1+H2)+'" x2="'+W+'" y2="'+(H1+H2)+'" stroke="#d5d9e0"/>';
+  s += '<line x1="'+L+'" y1="0" x2="'+L+'" y2="'+H+'" stroke="#d5d9e0"/>';
+  s += '<line x1="'+(W-APP)+'" y1="0" x2="'+(W-APP)+'" y2="'+H+'" stroke="#d5d9e0"/>';
+  ROLE_KEYS.forEach((r,i)=>{
+    const x0=gx(i);
+    s += '<text x="'+(x0+GW/2)+'" y="'+(H1/2+5)+'" text-anchor="middle" font-size="14" font-weight="700" fill="'+ROLE[r].d+'">'+ROLE[r].short+'</text>';
+    s += '<rect x="'+x0+'" y="'+(H1-3)+'" width="'+GW+'" height="3" fill="'+ROLE[r].c+'"/>';
+    ['ATE.','INT.','DEC.'].forEach((t,c)=>{ s += '<text x="'+cx(i,c)+'" y="'+(H1+H2/2+4)+'" text-anchor="middle" font-size="11" fill="#6b7280" letter-spacing=".05em">'+t+'</text>'; });
+    for(let c=1;c<3;c++) s += '<line x1="'+(x0+c*SUB)+'" y1="'+(H1+H2)+'" x2="'+(x0+c*SUB)+'" y2="'+H+'" stroke="#eceef2"/>';
+    s += '<line x1="'+(x0+GW)+'" y1="'+(H1+H2)+'" x2="'+(x0+GW)+'" y2="'+H+'" stroke="#eceef2"/>';
+  });
+  ALACT.forEach((a,p)=>{
+    const y0=H1+H2+p*NP*RH;
+    for(let k=1;k<NP;k++) s += '<line x1="'+L+'" y1="'+(y0+k*RH)+'" x2="'+W+'" y2="'+(y0+k*RH)+'" stroke="#f0f1f4"/>';
+    if(p>0) s += '<line x1="0" y1="'+y0+'" x2="'+W+'" y2="'+y0+'" stroke="#b9bec8" stroke-width="1.3"/>';
+    s += '<text x="16" y="'+(y0+NP*RH/2+5)+'" font-size="13.5" font-weight="600" fill="#16181d">'+a+'</text>';
+    PRACTICES.forEach((pr,k)=>{ s += '<text x="'+(W-APP+14)+'" y="'+(ry(p,k)+4)+'" font-size="12" font-style="italic" fill="#5b6170" font-family="'+SERIF+'">'+PRACTICE_LABEL[pr]+'</text>'; });
+  });
+  // gaps between groups (white bands)
+  for(let i=0;i<2;i++) s += '<rect x="'+(gx(i)+GW+0.5)+'" y="0.5" width="'+(GAP-1)+'" height="'+(H-1)+'" fill="#ffffff"/>';
 
-Cada actor respondio INDEPENDIENTEMENTE las mismas 7 preguntas. Debes generar exactamente 21 nodos: 7 por cada uno de los 3 actores. Asigna el role correcto segun quien respondio.
+  // clusters and positions
+  const clusters = clusterNodes(nodes);
+  const pos = {};
+  Object.values(clusters).forEach(c=>{
+    const ri=ROLE_KEYS.indexOf(c.role), ci=NOTICING.indexOf(c.noticing), p=ALACT.indexOf(c.alact), k=PRACTICES.indexOf(c.practice);
+    const w=Math.max(24, c.label.length*6.7+14);
+    pos[c.key]={x:cx(ri,ci), y:ry(p,k), hw:w/2, hh:10, c};
+  });
+  // edges per role in question order
+  const clip=(P0,ux,uy,extra)=>{ const t=Math.min(P0.hw/Math.max(Math.abs(ux),1e-6), P0.hh/Math.max(Math.abs(uy),1e-6)); return {x:P0.x+ux*(t+extra), y:P0.y+uy*(t+extra)}; };
+  let edges='';
+  ROLE_KEYS.forEach(r=>{
+    const seq = nodes.filter(n=>n.role===r).sort((a,b)=>a.n-b.n);
+    const done={}; let flip=1;
+    for(let i=0;i+1<seq.length;i++){
+      const a=pos[[r,seq[i].alact,seq[i].noticing,seq[i].practice].join('|')], b=pos[[r,seq[i+1].alact,seq[i+1].noticing,seq[i+1].practice].join('|')];
+      if(!a||!b||a===b) continue;
+      const dk=a.c.key+'>'+b.c.key; if(done[dk]) continue; done[dk]=1;
+      const dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy);
+      const off=Math.max(10, Math.min(56, len*0.2))*flip; flip*=-1;
+      const mx=(a.x+b.x)/2 - dy/len*off, my=(a.y+b.y)/2 + dx/len*off;
+      let ux=mx-a.x, uy=my-a.y, ul=Math.hypot(ux,uy)||1; const s0=clip(a,ux/ul,uy/ul,3);
+      let vx=mx-b.x, vy=my-b.y, vl=Math.hypot(vx,vy)||1; const s1=clip(b,vx/vl,vy/vl,5);
+      edges += '<path data-role="'+r+'" d="M'+s0.x.toFixed(1)+' '+s0.y.toFixed(1)+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+s1.x.toFixed(1)+' '+s1.y.toFixed(1)+'" fill="none" stroke="'+ROLE[r].c+'" stroke-opacity=".7" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ah-'+r+')"'+(hidden[r]?' visibility="hidden"':'')+'/>';
+    }
+  });
+  s += '<g>'+edges+'</g>';
+  let nd='';
+  Object.values(pos).forEach(p=>{
+    const c=p.c, r=c.role, w=p.hw*2;
+    nd += '<g data-node="'+esc(c.key)+'" data-role="'+r+'" style="cursor:pointer"'+(hidden[r]?' visibility="hidden"':'')+'>';
+    if(c.movement) nd += '<rect x="'+(p.x-p.hw-4)+'" y="'+(p.y-14)+'" width="'+(w+8)+'" height="28" rx="14" fill="none" stroke="'+ROLE[r].c+'" stroke-width="1.3" stroke-dasharray="2 2"/>';
+    nd += '<rect x="'+(p.x-p.hw)+'" y="'+(p.y-10)+'" width="'+w+'" height="20" rx="10" fill="'+ROLE[r].c+'" stroke="#ffffff" stroke-width="2"/>';
+    nd += '<text x="'+p.x+'" y="'+(p.y+4)+'" text-anchor="middle" font-size="11.5" font-weight="700" fill="#ffffff">'+esc(c.label)+'</text></g>';
+  });
+  s += nd + '</svg>';
+  return {svg:s, clusters, W, H};
+}
 
-PREGUNTAS DEL INSTRUMENTO:
-att-L (Atender/Lectura): Que llamo la atencion en la bitacora y por que
-att-R (Atender/Reflexiva): Que detalle parecio significativo desde su posicion en la triada
-int-L (Interpretar/Lectura): Que explicacion da el estudiante en su bitacora
-int-R (Interpretar/Reflexiva): Como interpreta ese episodio y en que difiere del estudiante
-dec-L (Decidir/Lectura): Que decision propone el estudiante en bitacora y que la fundamenta
-dec-R (Decidir/Reflexiva): Que decidirías o recomendarías tu
-dec-D (Decidir/Dialogica): Que le preguntarias a otro miembro de la triada
+/* ALACT level across the 7 questions, one line per role */
+function buildLineSVG(nodes){
+  const W=640, H=270, ml=104, mr=86, mt=16, mb=40;
+  const iw=W-ml-mr, ih=H-mt-mb;
+  const x = n => ml + (n-1)/(QUESTIONS.length-1)*iw;
+  const y = a => mt + ih - ALACT.indexOf(a)/(ALACT.length-1)*ih;
+  const F='Inter,Segoe UI,Arial,sans-serif';
+  let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" font-family="'+F+'" role="img" aria-label="Nivel ALACT de cada rol a lo largo de las siete preguntas">';
+  ALACT.forEach(a=>{ s+='<line x1="'+ml+'" x2="'+(W-mr)+'" y1="'+y(a)+'" y2="'+y(a)+'" stroke="#eceef2"/><text x="'+(ml-10)+'" y="'+(y(a)+4)+'" text-anchor="end" font-size="11.5" fill="#4b5160">'+a+'</text>'; });
+  QUESTIONS.forEach(q=>{ s+='<text x="'+x(q.n)+'" y="'+(H-mb+18)+'" text-anchor="middle" font-size="11.5" fill="#4b5160">'+q.n+'</text><text x="'+x(q.n)+'" y="'+(H-mb+32)+'" text-anchor="middle" font-size="10" fill="#8a90a0">'+({att:'ATE',int:'INT',dec:'DEC'})[q.phase]+'·'+q.type+'</text>'; });
+  const offs={student:-5, tutor:0, mentor:5};
+  ROLE_KEYS.forEach(r=>{
+    const pts=nodes.filter(n=>n.role===r).sort((a,b)=>a.n-b.n);
+    if(!pts.length) return;
+    const d=pts.map((p,i)=>(i?'L':'M')+(x(p.n)+offs[r]).toFixed(1)+' '+y(p.alact).toFixed(1)).join(' ');
+    s+='<path d="'+d+'" fill="none" stroke="'+ROLE[r].c+'" stroke-width="2" stroke-linejoin="round" data-role="'+r+'"/>';
+    pts.forEach(p=>{ s+='<circle data-pt="'+r+'|'+p.qid+'" cx="'+(x(p.n)+offs[r])+'" cy="'+y(p.alact)+'" r="5" fill="'+ROLE[r].c+'" stroke="#fff" stroke-width="2" style="cursor:pointer"/>'; });
+    const last=pts[pts.length-1];
+    s+='<text x="'+(x(last.n)+offs[r]+12)+'" y="'+(y(last.alact)+4+(r==='student'?-12:r==='mentor'?12:0))+'" font-size="12" font-weight="600" fill="'+ROLE[r].d+'">'+ROLE[r].short+'</text>';
+  });
+  return s+'</svg>';
+}
 
-REGLAS DE ASIGNACION ALACT:
-- Lectura (L) -> "Accion" o "Looking Back"
-- Reflexiva (R) -> "Awareness" o "Alternatives" 
-- Dialogica (D) -> "Alternatives" o "Trial"
-
-REGLAS DE PROFUNDIDAD:
-- descriptivo: describe hechos sin distancia critica
-- analitico: relaciona causas y efectos, compara perspectivas
-- critico: cuestiona supuestos, propone alternativas fundamentadas
-
-PRACTICA CIENTIFICA (inferida del contenido del episodio):
-- Indagacion: preguntas, hipotesis, experimentos
-- Modelizacion: modelos explicativos, representaciones
-- Argumentacion: justificacion con evidencia, debate
-- NA: no identificable
-
-Responde UNICAMENTE con JSON valido, sin texto adicional. Estructura obligatoria:
-{
-  "nodes": [
-    {"role": "student", "qid": "att-L", "qtype": "L", "alact": "Looking Back", "noticing": "Atender", "practice": "Modelizacion", "reflexive_depth": "descriptivo", "movement": false, "key_quote": "me llamo la atencion que los alumnos"},
-    {"role": "tutor", "qid": "att-L", "qtype": "L", "alact": "Accion", "noticing": "Atender", "practice": "Modelizacion", "reflexive_depth": "analitico", "movement": false, "key_quote": "el estudiante no registra su propia"},
-    {"role": "mentor", "qid": "att-L", "qtype": "L", "alact": "Looking Back", "noticing": "Atender", "practice": "Modelizacion", "reflexive_depth": "descriptivo", "movement": false, "key_quote": "lo que describe la bitacora revela"}
-  ],
-  "convergences": ["Los tres actores coinciden en que...", "Tanto tutor como mentor identifican..."],
-  "divergences": ["El estudiante interpreta X como deficit mientras el tutor lo ve como...", "El mentor propone una alternativa distinta a la del estudiante..."],
-  "reflective_triggers": ["Por que el estudiante atribuye el problema a los alumnos y no a su pregunta?", "Que supuesto sobre el aprendizaje revela la decision del estudiante?"],
-  "alact_pattern": "La triada muestra una trayectoria asimetrica: el estudiante permanece en Looking Back mientras tutor y mentor alcanzan Awareness. Las preguntas dialogicas proyectan hacia Trial pero no hay respuestas que confirmen el cierre reflexivo.",
-  "episode_summary": "El episodio describe una clase de ciencias donde el estudiante pregunto a sus alumnos sobre un fenomeno y obtuvo respuestas que no correspondian al nivel de analisis esperado. El estudiante registro esto como un deficit de los alumnos sin cuestionar el diseno de su propia pregunta."
-}`;
-
-  try {
-    const resp = await fetch(WORKER_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        messages:[
-          {role:'system', content: systemPrompt},
-          {role:'user', content:'Respuestas de la triada:\n'+answersText}
-        ]
-      })
+/* Noticing cycle (after Fig. 2, Jacobs et al., 2010) with mean ALACT level per role */
+function buildCycleSVG(nodes){
+  const W=440, H=380, cxm=220, cym=205, R=140;
+  const pol=(deg,r)=>{ const a=(deg-90)*Math.PI/180; return {x:cxm+r*Math.cos(a), y:cym+r*Math.sin(a)}; };
+  const arc=(a0,a1)=>{ const p0=pol(a0,R), p1=pol(a1,R); return 'M'+p0.x.toFixed(1)+' '+p0.y.toFixed(1)+' A'+R+' '+R+' 0 0 1 '+p1.x.toFixed(1)+' '+p1.y.toFixed(1); };
+  const F='Inter,Segoe UI,Arial,sans-serif';
+  let s='<svg viewBox="0 0 '+W+' '+H+'" width="100%" font-family="'+F+'" role="img" aria-label="Ciclo de noticing con nivel ALACT medio por rol en cada dimensión">';
+  s+='<defs><marker id="cyc-ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#9aa1af"/></marker></defs>';
+  [[38,82],[158,202],[278,322]].forEach(([a,b])=>{ s+='<path d="'+arc(a,b)+'" fill="none" stroke="#cfd4dd" stroke-width="3" marker-end="url(#cyc-ah)"/>'; });
+  s+='<circle cx="'+cxm+'" cy="'+cym+'" r="46" fill="#f8f9fb" stroke="#e3e6ec" stroke-dasharray="4 4"/>';
+  s+='<text x="'+cxm+'" y="'+(cym-3)+'" text-anchor="middle" font-size="11" font-weight="700" fill="#4b5160" letter-spacing=".06em">TRÍADA</text><text x="'+cxm+'" y="'+(cym+13)+'" text-anchor="middle" font-size="10.5" fill="#8a90a0">contexto de aula</text>';
+  const spots={Atender:0, Interpretar:120, Decidir:240};
+  NOTICING.forEach(dim=>{
+    const c=pol(spots[dim], R); const bw=150, bh=86; const x0=c.x-bw/2, y0=c.y-bh/2;
+    s+='<rect x="'+x0+'" y="'+y0+'" width="'+bw+'" height="'+bh+'" rx="12" fill="#ffffff" stroke="#e3e6ec"/>';
+    s+='<text x="'+c.x+'" y="'+(y0+18)+'" text-anchor="middle" font-size="12.5" font-weight="700" fill="#16181d">'+dim+'</text>';
+    ROLE_KEYS.forEach((r,i)=>{
+      const ns=nodes.filter(n=>n.role===r && QBY[n.qid].phaseLabel===dim);
+      const m = ns.length? ns.reduce((acc,n)=>acc+ALACT.indexOf(n.alact)+1,0)/ns.length : 0;
+      const yy=y0+32+i*17, bx=x0+28, maxw=bw-66;
+      s+='<text x="'+(x0+12)+'" y="'+(yy+4)+'" font-size="10.5" font-weight="700" fill="'+ROLE[r].d+'">'+ROLE[r].abbr+'</text>';
+      s+='<rect x="'+bx+'" y="'+(yy-3)+'" width="'+maxw+'" height="7" rx="3.5" fill="#f0f1f4"/>';
+      if(m) s+='<rect x="'+bx+'" y="'+(yy-3)+'" width="'+(maxw*m/5).toFixed(1)+'" height="7" rx="3.5" fill="'+ROLE[r].c+'"/>';
+      s+='<text x="'+(x0+bw-10)+'" y="'+(yy+4)+'" text-anchor="end" font-size="10.5" fill="#4b5160" font-variant-numeric="tabular-nums">'+(m?m.toFixed(1):'—')+'</text>';
     });
-    const data = await resp.json();
-    const raw = data.content?.[0]?.text || '';
-    if(!raw){
-      const errMsg = data.error || JSON.stringify(data);
-      throw new Error('Sin respuesta de IA: '+errMsg);
-    }
-    const clean = raw.replace(/```json|```/g,'').trim();
-    const result = JSON.parse(clean);
-    await db.ref(DB+'/'+S.sessionId+'/map').set({result, ts:Date.now()});
-    renderMapVisual(result);
-  } catch(e){
-    container.innerHTML = '<div class="card"><p class="error">Error al generar el mapa: '+e.message+'</p>'
-      +'<p class="muted" style="margin-top:6px;font-size:12px">Intenta de nuevo.</p>'
-      +'<button class="btn btn-primary" style="margin-top:.75rem" onclick="regenerateMap()">↺ Reintentar</button></div>';
-  }
-}
-
-function renderMapVisual(result){
-  const container = document.getElementById('view-content');
-  const ALACT = ['Acción','Looking Back','Awareness','Alternatives','Trial'];
-  const NOTICING = ['Atender','Interpretar','Decidir'];
-  const PRACTICE_BG = {
-    'Indagacion':'rgba(55,138,221,0.10)','Indagación':'rgba(55,138,221,0.10)',
-    'Modelizacion':'rgba(29,158,117,0.10)','Modelización':'rgba(29,158,117,0.10)',
-    'Argumentacion':'rgba(186,117,23,0.10)','Argumentación':'rgba(186,117,23,0.10)'
-  };
-  const DEPTH_BORDER = {
-    descriptivo:'1px solid rgba(136,135,128,0.5)',
-    analitico:'2px solid #BA7517','analítico':'2px solid #BA7517',
-    critico:'2.5px solid #1D9E75','crítico':'2.5px solid #1D9E75'
-  };
-  const DEPTH_DOT = {
-    descriptivo:'',
-    analitico:'<span style="width:5px;height:5px;border-radius:50%;background:#BA7517;display:inline-block;margin-left:3px;vertical-align:middle"></span>',
-    'analítico':'<span style="width:5px;height:5px;border-radius:50%;background:#BA7517;display:inline-block;margin-left:3px;vertical-align:middle"></span>',
-    critico:'<span style="width:5px;height:5px;border-radius:50%;background:#1D9E75;display:inline-block;margin-left:3px;vertical-align:middle"></span>',
-    'crítico':'<span style="width:5px;height:5px;border-radius:50%;background:#1D9E75;display:inline-block;margin-left:3px;vertical-align:middle"></span>'
-  };
-
-  // Dominant practice per cell
-  const cellPrac = {};
-  (result.nodes||[]).forEach(n=>{
-    const k = n.alact+'|'+n.noticing;
-    if(!cellPrac[k]) cellPrac[k]={};
-    const p = n.practice||'';
-    if(p && p!=='No identificable' && p!=='No identificado')
-      cellPrac[k][p]=(cellPrac[k][p]||0)+1;
   });
-  function domPrac(alact,noticing){
-    const c=cellPrac[alact+'|'+noticing]||{};
-    const e=Object.entries(c);
-    return e.length ? e.sort((a,b)=>b[1]-a[1])[0][0] : null;
+  return s+'</svg>';
+}
+
+function renderMapTab(){
+  const box=$('view-content');
+  const ready = expectedPairs().length;
+  const running = aiBusyElsewhere();
+  if(!S.map?.result){
+    box.innerHTML='<div class="card"><h2>Análisis IA de la tríada</h2>'
+      +'<p class="muted" style="margin-bottom:.8rem">La IA ubica cada respuesta en ALACT × Noticing × práctica científica, dibuja las trayectorias por rol y redacta el borrador del informe. El estado se ve en tiempo real en la barra superior, en los tres dispositivos.</p>'
+      +'<div class="stats" style="margin-bottom:.8rem">'+ROLE_KEYS.map(r=>'<div class="stat"><div class="stat-n">'+countAnswers(r)+'/7</div><div class="stat-l">'+ROLE[r].short+'</div></div>').join('')+'</div>'
+      +'<button class="btn btn-dark btn-full" onclick="generateAnalysis()" '+(running||!ready?'disabled':'')+'>'+(running?'<span class="spinner" style="border-top-color:#fff"></span> Procesando…':'Generar mapa e informe')+'</button>'
+      +(ready && ready<21?'<p class="muted" style="margin-top:.5rem">Hay '+ready+' de 21 respuestas. Puedes generar ahora o esperar a que todos terminen.</p>':'')
+      +'</div>';
+    return;
   }
+  const m=S.map.result, nodes=m.nodes;
+  const {svg, clusters} = buildMapSVG(nodes, {hidden:S.hidden});
+  S._clusters = clusters;
+  const missing = (S.map.expected||0) - nodes.length;
+  let h='<div class="card">'
+    +'<div class="row" style="align-items:baseline"><h2 class="grow">Mapa de trayectoria reflexiva triádica</h2><span class="muted">'+esc(modelInfo(S.map.model).name)+' · '+fmtDate(S.map.ts)+'</span></div>'
+    +'<p class="muted">Columnas: rol × dimensión de noticing. Filas: fase ALACT × práctica científica. Números = preguntas. Flechas = orden de respuesta de cada actor.</p>'
+    +'<div class="legend">'+ROLE_KEYS.map(r=>'<span class="lg-item'+(S.hidden[r]?' off':'')+'" onclick="toggleRole(\''+r+'\')" title="Mostrar/ocultar"><span class="lg-sw" style="background:'+ROLE[r].c+'"></span>'+ROLE[r].short+'</span>').join('')
+    +'<span class="lg-item" style="cursor:default"><svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="#8a90a0" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Trayectoria</span>'
+    +'<span class="lg-item" style="cursor:default"><svg width="26" height="18"><rect x="2" y="2" width="22" height="14" rx="7" fill="none" stroke="#8a90a0" stroke-dasharray="2 2"/></svg>Movimiento entre dimensiones</span></div>'
+    +(missing>0?'<p class="error" style="margin:.2rem 0 .4rem">La IA clasificó '+nodes.length+' de '+S.map.expected+' respuestas. Puedes regenerar para completar.</p>':'')
+    +(S.map.repaired?'<p class="muted" style="color:var(--warn)">La respuesta llegó truncada y se reparó automáticamente; algunos elementos finales pueden faltar.</p>':'')
+    +'<div class="map-scroll" id="map-svg">'+svg+'</div>'
+    +'<div class="qkey">'+QUESTIONS.map(q=>'<span><b>'+q.n+'</b>'+q.phaseLabel+' · '+q.typeLabel+'</span>').join('')+'</div>'
+    +'</div>';
+  h+='<div class="grid2" style="margin-bottom:1rem">'
+    +'<div class="card"><h3>Trayectoria ALACT por pregunta</h3><p class="muted" style="margin-bottom:.4rem">Nivel reflexivo de cada actor en la secuencia 1→7</p><div id="line-svg">'+buildLineSVG(nodes)+'</div></div>'
+    +'<div class="card"><h3>Ciclo de noticing por rol</h3><p class="muted" style="margin-bottom:.4rem">Nivel ALACT medio (1 = Acción · 5 = Trial) en cada dimensión</p>'+buildCycleSVG(nodes)+'</div>'
+    +'</div>';
+  if(m.summary||m.alact_pattern) h+='<div class="card accent">'+(m.summary?'<p class="eyebrow" style="margin-bottom:.3rem">Resumen del encuentro</p><p style="font-size:14.5px;line-height:1.7;margin-bottom:.8rem">'+esc(m.summary)+'</p>':'')
+    +(m.alact_pattern?'<p class="eyebrow" style="margin:0 0 .3rem">Patrón de trayectoria ALACT</p><p style="font-size:14.5px;line-height:1.7">'+esc(m.alact_pattern)+'</p>':'')+'</div>';
+  const list = a => a.length? '<ul class="listy">'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>' : '<p class="muted">—</p>';
+  h+='<div class="grid3" style="margin-bottom:1rem">'
+    +'<div class="card"><h3>Convergencias</h3>'+list(m.convergences)+'</div>'
+    +'<div class="card"><h3>Divergencias</h3>'+list(m.divergences)+'</div>'
+    +'<div class="card" style="border-top:3px solid var(--ink)"><h3>Nudos reflexivos</h3><p class="muted" style="margin-bottom:.3rem">Agenda para la discusión</p>'+list(m.reflective_triggers)+'</div>'
+    +'</div>';
+  if(Object.keys(m.role_profiles||{}).length) h+='<div class="grid3" style="margin-bottom:1rem">'+ROLE_KEYS.map(r=>'<div class="card" style="border-top:3px solid '+ROLE[r].c+'"><h3 style="color:'+ROLE[r].d+'">'+ROLE[r].label+'</h3><p style="font-size:13.5px">'+esc(m.role_profiles[r]||'—')+'</p></div>').join('')+'</div>';
+  h+='<div class="card"><details><summary>Tabla de codificación ('+nodes.length+' respuestas)</summary><div style="overflow-x:auto;margin-top:.6rem">'+codingTable(nodes)+'</div></details></div>';
+  h+='<div class="row"><button class="btn btn-dark grow" onclick="if(confirm(\'¿Regenerar el análisis? Se reemplazarán el mapa y el borrador del informe.\'))generateAnalysis()" '+(running?'disabled':'')+'>↺ Regenerar análisis</button><button class="btn grow" onclick="switchTab(\'report\')">Ver informe →</button></div>';
+  box.innerHTML=h;
+  bindMapHover();
+}
+function codingTable(nodes){
+  return '<table class="data"><thead><tr><th>Rol</th><th>#</th><th>Noticing</th><th>ALACT</th><th>Práctica</th><th>Profundidad</th><th>Mov.</th><th>Fragmento</th><th>Justificación</th></tr></thead><tbody>'
+    + nodes.slice().sort((a,b)=>ROLE_KEYS.indexOf(a.role)-ROLE_KEYS.indexOf(b.role)||a.n-b.n).map(n=>
+      '<tr><td><span class="pill pill-'+n.role+'">'+ROLE[n.role].short+'</span></td><td>'+n.n+'</td><td>'+n.noticing+'</td><td>'+n.alact+'</td><td>'+PRACTICE_LABEL[n.practice]+'</td><td>'+n.depth+'</td><td>'+(n.movement?'→ '+esc(n.movement_to||'sí'):'')+'</td><td><i>'+esc(n.quote)+'</i></td><td>'+esc(n.rationale)+'</td></tr>').join('')
+    + '</tbody></table>';
+}
+function toggleRole(r){ S.hidden[r]=!S.hidden[r]; renderMapTab(); }
+function showTip(ev, html){ const t=$('tip'); t.innerHTML=html; t.classList.add('on');
+  const x=Math.min(ev.clientX+14, window.innerWidth-t.offsetWidth-10), y=Math.min(ev.clientY+14, window.innerHeight-t.offsetHeight-10);
+  t.style.left=x+'px'; t.style.top=y+'px'; }
+function hideTip(){ $('tip').classList.remove('on'); }
+function nodeTip(n){
+  return '<div class="t-h" style="color:'+ROLE[n.role].l+'">'+ROLE[n.role].short+' · '+n.n+'. '+QBY[n.qid].phaseLabel+' ('+QBY[n.qid].typeLabel+')</div>'
+    +n.alact+' · '+n.noticing+' · '+PRACTICE_LABEL[n.practice]+' · '+n.depth+(n.movement?' · movimiento → '+esc(n.movement_to||''):'')
+    +(n.quote?'<div class="t-q">“'+esc(n.quote)+'”</div>':'')+(n.rationale?'<div style="margin-top:4px;color:#b8bcc6">'+esc(n.rationale)+'</div>':'');
+}
+function bindMapHover(){
+  const svg=document.querySelector('#map-svg svg'); if(!svg) return;
+  svg.querySelectorAll('[data-node]').forEach(g=>{
+    const c=S._clusters[g.getAttribute('data-node')];
+    g.addEventListener('mousemove', ev=>{
+      showTip(ev, c.items.map(nodeTip).join('<hr style="border:none;border-top:1px solid #333;margin:6px 0">'));
+      svg.querySelectorAll('[data-role]').forEach(el=>el.style.opacity = el.getAttribute('data-role')===c.role?'1':'.15');
+    });
+    g.addEventListener('mouseleave', ()=>{ hideTip(); svg.querySelectorAll('[data-role]').forEach(el=>el.style.opacity=''); });
+    g.addEventListener('click', ev=>{ showTip(ev, c.items.map(nodeTip).join('<hr style="border:none;border-top:1px solid #333;margin:6px 0">')); setTimeout(hideTip, 4000); });
+  });
+  document.querySelectorAll('#line-svg [data-pt]').forEach(el=>{
+    const [r,qid]=el.getAttribute('data-pt').split('|'); const n=S.map.result.nodes.find(x=>x.role===r&&x.qid===qid);
+    el.addEventListener('mousemove', ev=>showTip(ev, nodeTip(n)));
+    el.addEventListener('mouseleave', hideTip);
+  });
+}
 
-  // Grid
-  let grid = '<div class="map-grid">'
-    +'<div class="map-header">ALACT / Noticing</div>'
-    +'<div class="map-header">Atender</div>'
-    +'<div class="map-header">Interpretar</div>'
-    +'<div class="map-header">Decidir</div>';
-
-  for(const alact of ALACT){
-    grid += '<div class="map-phase">'+alact+'</div>';
-    for(const noticing of NOTICING){
-      const nodes = (result.nodes||[]).filter(n=>n.alact===alact && n.noticing===noticing);
-      const prac = domPrac(alact, noticing);
-      const bg = prac ? (PRACTICE_BG[prac]||'') : '';
-      const cells = nodes.map(n=>{
-        const rl = (ROLES[n.role]||n.role).split(' ')[0];
-        const qt = n.qtype ? '('+n.qtype+')' : '';
-        const mv = n.movement ? ' ⇢' : '';
-        const border = DEPTH_BORDER[n.reflexive_depth]||DEPTH_BORDER['descriptivo'];
-        const dot = DEPTH_DOT[n.reflexive_depth]||'';
-        const tip = [n.key_quote, n.alact_rationale].filter(Boolean).join(' — ');
-        return '<span class="map-node node-'+n.role+'" style="border:'+border+'" title="'+tip+'">'+rl+' '+qt+mv+dot+'</span>';
-      }).join('');
-      grid += '<div class="map-cell" style="background:'+bg+'">'+cells+'</div>';
+// ═══════════════════════════════════════════
+// REPORT TAB (formato "Reunión de Triada Formativa")
+// ═══════════════════════════════════════════
+const INTRO_1 = 'La Práctica Docente Final implica que el profesor/a en formación asume el rol de docente de un curso en propiedad, con todas las tareas que ello implica. Para que esta intervención docente sea óptima, permitiendo un aprendizaje de calidad en todos los estudiantes a cargo, es necesario conocer las características del centro educativo y del curso donde se desempeñará, sus fortalezas, debilidades y las distintas particularidades que éste tenga, a fin de elaborar una planificación contextualizada a dicha realidad.';
+const INTRO_2 = 'Para esta contextualización, es necesario que el estudiante en práctica realice una observación del aula y de la institución donde se desempeñará, a fin de identificar aquellos factores prioritarios y claves para la formulación de objetivos de aprendizaje y planes de clases pertinentes a la realidad del grupo curso y del centro educativo.';
+const DLG_Q1 = '¿Cuáles son los factores contextuales y prioritarios que fueron identificados hasta ahora?';
+const DLG_Q2 = 'Describa cómo considerará estos factores en la planificación de la enseñanza, para promover aprendizajes en todos los estudiantes.';
+const bullets = a => (Array.isArray(a)?a:(a?[a]:[])).filter(Boolean).map(x=>'• '+x).join('\n');
+function draftValue(key){
+  const r=S.report?.result||{}, m=S.map?.result;
+  switch(key){
+    case 'factores': return r.factores_contextuales||'';
+    case 'planificacion': return r.planificacion||'';
+    case 'mentor_fortalezas': return bullets(r.mentor?.fortalezas);
+    case 'mentor_mejorar': return bullets(r.mentor?.aspectos_mejorar);
+    case 'mentor_sugerencias': return bullets(r.mentor?.sugerencias);
+    case 'pract_fortalezas': return bullets(r.practicante?.fortalezas);
+    case 'pract_mejorar': return bullets(r.practicante?.aspectos_mejorar);
+    case 'observaciones': {
+      let t=r.observaciones||'';
+      if(r.acuerdos?.length) t+='\n\nAcuerdos y próximos pasos:\n'+bullets(r.acuerdos);
+      return t;
     }
   }
-  grid += '</div>';
-
-  // Practice count
-  const pc={};
-  (result.nodes||[]).forEach(n=>{
-    const p=n.practice||'';
-    if(p&&p!=='No identificable'&&p!=='No identificado') pc[p]=(pc[p]||0)+1;
+  return '';
+}
+function fieldValue(key){
+  if(key.startsWith('meta.')) { const k=key.slice(5); return S.meta[k] ?? (META_FIELDS.find(f=>f.k===k)?.def||''); }
+  return S.edits[key] ?? draftValue(key);
+}
+const saveEdit = debounceByKey((key,val)=>{
+  if(key.startsWith('meta.')) db.ref(P('meta/'+key.slice(5))).set(val);
+  else db.ref(P('report_edits/'+key)).set(val);
+}, 600);
+function fieldTA(key, ph){ return '<textarea class="f" data-f="'+key+'" rows="2" placeholder="'+esc(ph||'')+'"></textarea>'; }
+function fieldIN(key, type){ return '<input class="f" type="'+(type||'text')+'" data-f="'+key+'">'; }
+function autosize(el){ if(el.tagName!=='TEXTAREA') return; el.style.height='auto'; el.style.height=(el.scrollHeight+2)+'px'; }
+function updateReportFields(){
+  document.querySelectorAll('#report-doc [data-f]').forEach(el=>{
+    if(document.activeElement===el) return;
+    el.value = fieldValue(el.dataset.f); autosize(el);
   });
-  const pracHtml = Object.entries(pc).map(([k,v])=>
-    '<span style="background:var(--bg2);border:0.5px solid var(--border);padding:2px 8px;border-radius:20px;font-size:12px;margin:2px">'+k+' ('+v+')</span>'
-  ).join('');
-
-  const conv = (result.convergences||[]).map(c=>'<li>'+c+'</li>').join('');
-  const divg = (result.divergences||[]).map(d=>'<li>'+d+'</li>').join('');
-  const trig = (result.reflective_triggers||[]).map(t=>'<li>'+t+'</li>').join('');
-
-  let html = '<div class="card">'
-    +'<h2 style="margin-bottom:.5rem">Mapa de trayectoria triádica</h2>'
-    +'<p class="muted" style="font-size:12px;margin-bottom:.6rem">Fondo = práctica científica · Borde del nodo = profundidad reflexiva · (L/R/D) = tipo de pregunta · ⇢ = movimiento entre dimensiones</p>'
-    +'<div style="display:flex;gap:6px;margin-bottom:.5rem;flex-wrap:wrap">'
-    +'<span class="map-node node-student">Estudiante</span>'
-    +'<span class="map-node node-tutor">Tutor</span>'
-    +'<span class="map-node node-mentor">Mentor</span>'
-    +'<span style="font-size:10px;color:var(--text3);align-self:center;margin-left:4px">'
-    +'<span style="width:10px;height:10px;border-radius:2px;background:rgba(55,138,221,0.2);display:inline-block;margin-right:2px"></span>Ind '
-    +'<span style="width:10px;height:10px;border-radius:2px;background:rgba(29,158,117,0.2);display:inline-block;margin-right:2px;margin-left:4px"></span>Mod '
-    +'<span style="width:10px;height:10px;border-radius:2px;background:rgba(186,117,23,0.2);display:inline-block;margin-right:2px;margin-left:4px"></span>Arg'
-    +'</span></div>'
-    +grid+'</div>';
-
-  if(result.episode_summary)
-    html += '<div class="card" style="border-left:3px solid #888;border-radius:0 var(--radius) var(--radius) 0">'
-      +'<p class="label" style="color:var(--text2)">Episodio pedagógico</p>'
-      +'<p style="font-size:14px;line-height:1.7;margin-top:4px">'+result.episode_summary+'</p></div>';
-
-  if(result.alact_pattern)
-    html += '<div class="card" style="border-left:3px solid var(--teal);border-radius:0 var(--radius) var(--radius) 0">'
-      +'<p class="label" style="color:var(--teal-dark)">Patrón de trayectoria reflexiva triádica</p>'
-      +'<p style="font-size:14px;line-height:1.7;margin-top:4px">'+result.alact_pattern+'</p></div>';
-
-  if(pracHtml)
-    html += '<div class="card"><p class="label">Prácticas científicas inferidas</p><div style="margin-top:4px">'+pracHtml+'</div></div>';
-
-  if(conv)
-    html += '<div class="card"><h2>Convergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+conv+'</ul></div>';
-  if(divg)
-    html += '<div class="card"><h2>Divergencias</h2><ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+divg+'</ul></div>';
-  if(trig)
-    html += '<div class="card" style="border-left:3px solid var(--purple);border-radius:0 var(--radius) var(--radius) 0">'
-      +'<h2 style="color:var(--purple-dark)">Nudos reflexivos para la discusión triádica</h2>'
-      +'<p class="muted" style="font-size:12px;margin-bottom:.5rem">Úsalas como agenda del encuentro</p>'
-      +'<ul style="padding-left:1.25rem;font-size:14px;line-height:1.8">'+trig+'</ul></div>';
-
-  html += '<div style="margin-top:.5rem;display:flex;gap:8px">'
-    +'<button class="btn btn-primary" style="flex:1" onclick="regenerateMap()">↺ Regenerar mapa</button>'
-    +'<button class="btn btn-full" style="flex:1" onclick="exportSession()">↓ Exportar JSON</button></div>';
-
-  container.innerHTML = html;
+}
+function renderReportTab(){
+  const box=$('view-content');
+  const running=aiBusyElsewhere();
+  if(document.activeElement && document.activeElement.closest && document.activeElement.closest('#report-doc')){ updateReportFields(); return; }
+  const hasDraft=!!S.report?.result, hasMap=!!S.map?.result;
+  let h='<div class="card"><div class="row"><div class="grow"><h2 style="margin:0">Informe de la tríada</h2>'
+    +'<p class="muted">'+(hasDraft?'Borrador IA ('+esc(modelInfo(S.report.model).name)+', '+fmtDate(S.report.ts)+'). Todos los campos son editables y se sincronizan.':'Formato "Reunión de Triada Formativa". Genera el borrador con IA o complétalo manualmente.')+'</p></div></div>'
+    +'<div class="row" style="margin-top:.7rem">'
+    +'<button class="btn btn-dark" onclick="'+(hasMap?'generateReport(false)':'generateAnalysis()')+'" '+(running?'disabled':'')+'>'+(hasDraft?'↺ Regenerar borrador':'Generar borrador con IA')+'</button>'
+    +'<button class="btn" onclick="exportDocx(this)">↓ Word (.docx)</button>'
+    +'<button class="btn" onclick="window.print()">Imprimir / PDF</button>'
+    +(Object.keys(S.edits).length?'<button class="btn btn-sm" onclick="if(confirm(\'¿Descartar las ediciones manuales y volver al borrador IA?\'))db.ref(P(\'report_edits\')).remove()">Descartar ediciones</button>':'')
+    +'</div></div>';
+  h+='<div class="doc-wrap"><div class="doc" id="report-doc">'
+    +'<h1>REUNIÓN DE TRIADA FORMATIVA</h1>'
+    +'<div class="sub">Análisis y evaluación de la importancia de los factores prioritarios de cada contexto para la implementación de la enseñanza.</div>'
+    +'<h4>I. Información general:</h4><table><tbody>'
+    +'<tr><td class="k">Tipo de Práctica</td><td><b>PRÁCTICA DOCENTE FINAL</b></td></tr>'
+    +META_FIELDS.map(f=>'<tr><td class="k">'+esc(f.label)+'</td><td>'+fieldIN('meta.'+f.k, f.type)+'</td></tr>').join('')
+    +'</tbody></table>'
+    +'<p class="body">'+INTRO_1+'</p><p class="body">'+INTRO_2+'</p>'
+    +'<h4>II. DIALOGAR SOBRE LAS SIGUIENTES PREGUNTAS.</h4>'
+    +'<ol><li><p>'+DLG_Q1+'</p>'+fieldTA('factores','Factores contextuales identificados…')+'</li>'
+    +'<li style="margin-top:10px"><p>'+DLG_Q2+'</p>'+fieldTA('planificacion','Consideración en la planificación…')+'</li></ol>'
+    +'<h4>II. Retroalimentación de parte del mentor:</h4>'
+    +'<table><thead><tr><th>FORTALEZAS</th><th>ASPECTOS POR MEJORAR</th><th>SUGERENCIAS</th></tr></thead><tbody><tr>'
+    +'<td>'+fieldTA('mentor_fortalezas')+'</td><td>'+fieldTA('mentor_mejorar')+'</td><td>'+fieldTA('mentor_sugerencias')+'</td></tr></tbody></table>'
+    +'<h4>III. Retroalimentación de parte del profesor en formación:</h4>'
+    +'<table><thead><tr><th>FORTALEZAS</th><th>ASPECTOS POR MEJORAR</th></tr></thead><tbody><tr>'
+    +'<td>'+fieldTA('pract_fortalezas')+'</td><td>'+fieldTA('pract_mejorar')+'</td></tr></tbody></table>'
+    +'<h4>IV. Observaciones y reflexiones:</h4>'
+    +'<table><tbody><tr><td>'+fieldTA('observaciones','Observaciones y reflexiones del encuentro…')+'</td></tr></tbody></table>';
+  if(hasMap){
+    const m=S.map.result;
+    const ul=a=>a.length?'<ul>'+a.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>':'<p>—</p>';
+    h+='<div class="annex"><h4>Anexo A. Mapa de trayectoria reflexiva triádica (ALACT × Noticing × práctica científica)</h4>'
+      + buildMapSVG(m.nodes).svg
+      +'<p class="caption">Figura 1. Ubicación de cada respuesta según fase ALACT (filas), dimensión de noticing (columnas) y práctica científica inferida (sub-filas), por rol. Los números identifican las preguntas (1–7); las flechas discontinuas muestran la trayectoria de cada actor.</p>'
+      +'<h4>Anexo B. Análisis de noticing reflexivo</h4>'
+      +(m.summary?'<p class="body"><b>Resumen del encuentro.</b> '+esc(m.summary)+'</p>':'')
+      +(m.alact_pattern?'<p class="body"><b>Patrón ALACT.</b> '+esc(m.alact_pattern)+'</p>':'')
+      +'<p><b>Convergencias</b></p>'+ul(m.convergences)
+      +'<p><b>Divergencias</b></p>'+ul(m.divergences)
+      +'<p><b>Nudos reflexivos para el próximo encuentro</b></p>'+ul(m.reflective_triggers)
+      +'<table><thead><tr><th>Rol</th><th>#</th><th>Noticing</th><th>ALACT</th><th>Práctica</th><th>Profundidad</th><th>Fragmento</th></tr></thead><tbody>'
+      + m.nodes.slice().sort((a,b)=>ROLE_KEYS.indexOf(a.role)-ROLE_KEYS.indexOf(b.role)||a.n-b.n).map(n=>'<tr><td>'+ROLE[n.role].short+'</td><td>'+n.n+'</td><td>'+n.noticing+'</td><td>'+n.alact+'</td><td>'+PRACTICE_LABEL[n.practice]+'</td><td>'+n.depth+'</td><td><i>'+esc(n.quote)+'</i></td></tr>').join('')
+      +'</tbody></table></div>';
+  }
+  h+='<div class="annex"><h4>Anexo '+(hasMap?'C':'A')+'. Respuestas de la tríada</h4>'
+    + QUESTIONS.map(q=>'<p style="margin-top:10px"><b>'+q.n+'. '+q.phaseLabel+' · '+q.typeLabel+'.</b> '+esc(q.text)+'</p><table><tbody>'
+      + ROLE_KEYS.map(r=>'<tr><td class="k" style="width:22%">'+ROLE[r].short+'</td><td style="white-space:pre-wrap">'+esc(S.all[r]?.[q.id]?.text||'—')+'</td></tr>').join('')+'</tbody></table>').join('')
+    +'</div>';
+  h+='<p class="ai-note">'+aiNote()+'</p></div></div>';
+  box.innerHTML=h;
+  document.querySelectorAll('#report-doc [data-f]').forEach(el=>{
+    el.value=fieldValue(el.dataset.f); autosize(el);
+    el.addEventListener('input', ()=>{ autosize(el); if(el.dataset.f.startsWith('meta.')) S.meta[el.dataset.f.slice(5)]=el.value; else S.edits[el.dataset.f]=el.value; saveEdit(el.dataset.f, el.value); });
+  });
+}
+function aiNote(){
+  const parts=['Sesión '+S.sid+'.'];
+  if(S.map) parts.push('Análisis de noticing generado con '+modelInfo(S.map.model).slug+' vía OpenRouter ('+fmtDate(S.map.ts)+').');
+  if(S.report) parts.push('Borrador del acta generado con '+modelInfo(S.report.model).slug+' ('+fmtDate(S.report.ts)+').');
+  parts.push('El contenido generado por IA es un borrador y debe ser revisado y validado por la tríada.');
+  return parts.join(' ');
 }
 
-async function regenerateMap(){
-  await db.ref(DB+'/'+S.sessionId+'/map').remove();
-  renderMap(true);
+// ═══════════════════════════════════════════
+// EXPORTS
+// ═══════════════════════════════════════════
+function loadScript(src){ return new Promise((res,rej)=>{ if(window.docx) return res(); const s=document.createElement('script'); s.src=src; s.onload=res; s.onerror=()=>rej(new Error('No se pudo cargar '+src)); document.head.appendChild(s); }); }
+function svgToPng(svgStr, scale=2){
+  return new Promise((res,rej)=>{
+    const m=svgStr.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/); const w=+m[1], h=+m[2];
+    const img=new Image();
+    img.onload=()=>{ const c=document.createElement('canvas'); c.width=w*scale; c.height=h*scale; const ctx=c.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(img,0,0,c.width,c.height);
+      c.toBlob(b=>b.arrayBuffer().then(buf=>res({data:new Uint8Array(buf), w, h})),'image/png'); };
+    img.onerror=()=>rej(new Error('No se pudo rasterizar el mapa'));
+    img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr);
+  });
+}
+async function exportDocx(btn){
+  const old=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Generando…';
+  try{
+    await loadScript(DOCX_CDN);
+    const D=window.docx;
+    const {Document,Packer,Paragraph,TextRun,Table,TableRow,TableCell,WidthType,AlignmentType,ShadingType,ImageRun,PageBreak}=D;
+    const FONT='Calibri';
+    const txt=(t,o={})=>new TextRun(Object.assign({text:t, font:FONT, size:22},o));
+    const para=(t,o={},po={})=>new Paragraph(Object.assign({children:[txt(t,o)], spacing:{after:120}},po));
+    const lines=(t,o={})=>String(t||' ').split('\n').map(l=>para(l||' ',o,{spacing:{after:40}}));
+    const head=t=>para(t,{bold:true},{spacing:{before:240,after:120}});
+    const cell=(children,o={})=>new TableCell(Object.assign({children, margins:{top:60,bottom:60,left:100,right:100}},o));
+    const shade=fill=>({type:ShadingType.CLEAR, color:'auto', fill});
+    const hcell=t=>cell([para(t,{bold:true},{alignment:AlignmentType.CENTER,spacing:{after:0}})],{shading:shade('D9E2F3')});
+    const full={size:100,type:WidthType.PERCENTAGE};
+    const v=k=>fieldValue(k);
+    const ch=[];
+    ch.push(para('REUNIÓN DE TRIADA FORMATIVA',{bold:true,size:26},{alignment:AlignmentType.CENTER}));
+    ch.push(para('Análisis y evaluación de la importancia de los factores prioritarios de cada contexto para la implementación de la enseñanza.',{bold:true},{alignment:AlignmentType.CENTER,spacing:{after:240}}));
+    ch.push(head('I. Información general:'));
+    const infoRows=[['Tipo de Práctica','PRÁCTICA DOCENTE FINAL']].concat(META_FIELDS.map(f=>[f.label, f.type==='date'&&v('meta.'+f.k)? new Date(v('meta.'+f.k)+'T12:00:00').toLocaleDateString('es-CL') : v('meta.'+f.k)]));
+    ch.push(new Table({width:full, rows:infoRows.map(([k,val],i)=>new TableRow({children:[
+      cell([para(k,{bold:true},{spacing:{after:0}})],{width:{size:38,type:WidthType.PERCENTAGE},shading:shade('F2F2F2')}),
+      cell([para(val||' ',i===0?{bold:true}:{},{spacing:{after:0}})],{width:{size:62,type:WidthType.PERCENTAGE}})]}))}));
+    ch.push(para(' '));
+    ch.push(para(INTRO_1,{},{alignment:AlignmentType.JUSTIFIED}));
+    ch.push(para(INTRO_2,{},{alignment:AlignmentType.JUSTIFIED}));
+    ch.push(head('II. DIALOGAR SOBRE LAS SIGUIENTES PREGUNTAS.'));
+    ch.push(para('1. '+DLG_Q1,{bold:true})); ch.push(...lines(v('factores')));
+    ch.push(para('2. '+DLG_Q2,{bold:true},{spacing:{before:160,after:120}})); ch.push(...lines(v('planificacion')));
+    ch.push(head('II. Retroalimentación de parte del mentor:'));
+    ch.push(new Table({width:full, rows:[
+      new TableRow({tableHeader:true, children:['FORTALEZAS','ASPECTOS POR MEJORAR','SUGERENCIAS'].map(hcell)}),
+      new TableRow({children:['mentor_fortalezas','mentor_mejorar','mentor_sugerencias'].map(k=>cell(lines(v(k)),{width:{size:33,type:WidthType.PERCENTAGE}}))})]}));
+    ch.push(head('III. Retroalimentación de parte del profesor en formación:'));
+    ch.push(new Table({width:full, rows:[
+      new TableRow({tableHeader:true, children:['FORTALEZAS','ASPECTOS POR MEJORAR'].map(hcell)}),
+      new TableRow({children:['pract_fortalezas','pract_mejorar'].map(k=>cell(lines(v(k)),{width:{size:50,type:WidthType.PERCENTAGE}}))})]}));
+    ch.push(head('IV. Observaciones y reflexiones:'));
+    ch.push(new Table({width:full, rows:[new TableRow({children:[cell(lines(v('observaciones')))]})]}));
+    let annex='A';
+    if(S.map?.result){
+      const m=S.map.result;
+      ch.push(new Paragraph({children:[new PageBreak()]}));
+      ch.push(head('Anexo A. Mapa de trayectoria reflexiva triádica (ALACT × Noticing × práctica científica)'));
+      const png=await svgToPng(buildMapSVG(m.nodes).svg, 2);
+      const wpx=620; ch.push(new Paragraph({children:[new ImageRun({type:'png', data:png.data, transformation:{width:wpx, height:Math.round(wpx*png.h/png.w)}})]}));
+      ch.push(para('Figura 1. Ubicación de cada respuesta según fase ALACT (filas), dimensión de noticing (columnas) y práctica científica inferida (sub-filas), por rol. Los números identifican las preguntas (1–7); las flechas discontinuas muestran la trayectoria de cada actor.',{size:18,italics:true}));
+      ch.push(head('Anexo B. Análisis de noticing reflexivo'));
+      if(m.summary) ch.push(new Paragraph({children:[txt('Resumen del encuentro. ',{bold:true}),txt(m.summary)],spacing:{after:120},alignment:AlignmentType.JUSTIFIED}));
+      if(m.alact_pattern) ch.push(new Paragraph({children:[txt('Patrón ALACT. ',{bold:true}),txt(m.alact_pattern)],spacing:{after:120},alignment:AlignmentType.JUSTIFIED}));
+      [['Convergencias',m.convergences],['Divergencias',m.divergences],['Nudos reflexivos para el próximo encuentro',m.reflective_triggers]].forEach(([t,a])=>{
+        ch.push(para(t,{bold:true},{spacing:{before:120,after:60}})); (a.length?a:['—']).forEach(x=>ch.push(para('• '+x,{},{spacing:{after:40},indent:{left:280}})));
+      });
+      const cols=['Rol','#','Noticing','ALACT','Práctica','Profundidad','Fragmento'];
+      ch.push(para(' '));
+      ch.push(new Table({width:full, rows:[new TableRow({tableHeader:true, children:cols.map(hcell)})].concat(
+        m.nodes.slice().sort((a,b)=>ROLE_KEYS.indexOf(a.role)-ROLE_KEYS.indexOf(b.role)||a.n-b.n).map(n=>new TableRow({children:
+          [ROLE[n.role].short,String(n.n),n.noticing,n.alact,PRACTICE_LABEL[n.practice],n.depth,n.quote].map((t,i)=>cell([para(t||' ',Object.assign({size:18},i===6?{italics:true}:{}),{spacing:{after:0}})],{width:{size:[12,5,13,14,15,12,29][i],type:WidthType.PERCENTAGE}}))})))}));
+      annex='C';
+    }
+    ch.push(new Paragraph({children:[new PageBreak()]}));
+    ch.push(head('Anexo '+annex+'. Respuestas de la tríada'));
+    QUESTIONS.forEach(q=>{
+      ch.push(new Paragraph({children:[txt(q.n+'. '+q.phaseLabel+' · '+q.typeLabel+'. ',{bold:true}),txt(q.text)],spacing:{before:160,after:80}}));
+      ch.push(new Table({width:full, rows:ROLE_KEYS.map(r=>new TableRow({children:[
+        cell([para(ROLE[r].short,{bold:true,size:20},{spacing:{after:0}})],{width:{size:20,type:WidthType.PERCENTAGE},shading:shade('F2F2F2')}),
+        cell(lines(S.all[r]?.[q.id]?.text||'—',{size:20}),{width:{size:80,type:WidthType.PERCENTAGE}})]}))}));
+    });
+    ch.push(para(' '));
+    ch.push(para(aiNote(),{size:16,italics:true,color:'555555'}));
+    const doc=new Document({creator:'Noticing Triádico PUCV', title:'Reunión de Triada Formativa '+S.sid,
+      styles:{default:{document:{run:{font:FONT,size:22}}}},
+      sections:[{properties:{page:{margin:{top:1134,bottom:1134,left:1134,right:1134}}}, children:ch}]});
+    const blob=await Packer.toBlob(doc);
+    const name=(S.meta.practicante||'triada').replace(/[^\wáéíóúñÁÉÍÓÚÑ]+/g,'_');
+    download(blob, 'Informe_Triada_'+name+'_'+S.sid+'.docx');
+  }catch(e){
+    alert('No se pudo generar el Word: '+e.message);
+  }finally{ btn.disabled=false; btn.innerHTML=old; }
+}
+function download(blob, name){ const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1000); }
+async function exportJSON(){
+  const snap=await db.ref(P()).get();
+  download(new Blob([JSON.stringify({sessionId:S.sid, exportedAt:new Date().toISOString(), ...(snap.val()||{})},null,2)],{type:'application/json'}), 'noticing-'+S.sid+'-'+Date.now()+'.json');
 }
 
-async function exportSession(){
-  const snap = await db.ref(DB+'/'+S.sessionId).get();
-  const data = snap.val()||{};
-  const blob = new Blob([JSON.stringify({sessionId:S.sessionId, exportedAt:new Date().toISOString(), ...data},null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url; a.download='noticing-'+S.sessionId+'-'+Date.now()+'.json';
-  a.click(); URL.revokeObjectURL(url);
-}
-
-setInterval(()=>{
-  if(document.getElementById('screen-view').classList.contains('active') && S.viewTab!=='map')
-    renderView();
-},15000);
+// ═══════════════════════════════════════════
+// BOOT — resume session after reload, or ?s=CODE
+// ═══════════════════════════════════════════
+(function boot(){
+  renderAIStatus();
+  const qs=new URLSearchParams(location.search).get('s');
+  if(qs) $('session-input').value=qs.toUpperCase();
+  try{
+    const saved=JSON.parse(lsGet('ntr_session')||'null');
+    if(saved && saved.sid && saved.role && (!qs || qs.toUpperCase()===saved.sid)){
+      S.role=saved.role; S.sid=saved.sid; selectRole(saved.role); enterSession();
+    }
+  }catch(e){}
+})();
 </script>
 </body>
 </html>

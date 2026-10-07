@@ -225,7 +225,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
         <div class="ai-stages" id="ai-stages"></div>
         <dl class="ai-kv" id="ai-kv"></dl>
         <div class="row">
-          <button class="btn btn-sm" onclick="pingAI(event)">Probar conexión</button>
+          <button class="btn btn-sm" id="ping-btn" onclick="pingAI(event)">Probar conexión</button>
           <span class="muted" id="ai-ping"></span>
         </div>
       </div>
@@ -254,7 +254,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
     </div>
     <p id="home-error" class="error" style="display:none"></p>
     <div class="divider"></div>
-    <button class="btn btn-dark btn-full" onclick="createSession()">+ Crear nueva sesión</button>
+    <button class="btn btn-dark btn-full" onclick="createSession()">+ Crear nueva sesión (tutor)</button>
   </div>
 </div>
 
@@ -271,7 +271,7 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
   </div>
   <div class="card">
     <h2>Datos de la reunión</h2>
-    <p class="muted" style="margin-bottom:.8rem">Se sincronizan con todos los dispositivos y alimentan la sección I del informe.</p>
+    <p class="muted" style="margin-bottom:.8rem" id="meta-note">Se sincronizan con todos los dispositivos y alimentan la sección I del informe.</p>
     <div class="grid2" id="meta-form"></div>
     <div style="margin-top:.8rem">
       <p class="label">Episodio pedagógico (resumen de la bitácora)</p>
@@ -396,6 +396,11 @@ const S = {role:null, sid:null, currentQ:0, all:{}, meta:{}, presence:{}, map:nu
   ai:{state:'idle'}, tab:'resp', filter:'all', hidden:{}, refs:[], mapSeen:0, reportSeen:0};
 
 const $ = id => document.getElementById(id);
+// Gestión (datos de la reunión, IA, edición del informe) reservada al tutor universitario
+const MANAGER = 'tutor';
+const isManager = () => S.role===MANAGER;
+function guard(){ if(isManager()) return true; alert('Solo el tutor universitario puede realizar esta acción.'); return false; }
+const TUTOR_ONLY_NOTE = '<p class="muted" style="margin-top:.5rem">🔒 Gestionado por el tutor universitario.</p>';
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const P = path => 'sessions/'+S.sid+(path?'/'+path:'');
 const lsGet = k => { try{return localStorage.getItem(k);}catch(e){return null;} };
@@ -428,6 +433,7 @@ function homeError(msg){
 }
 async function createSession(){
   if(!S.role) return homeError('Primero selecciona tu rol');
+  if(!isManager()) return homeError('Solo el tutor universitario crea la sesión. Pídele el código y únete.');
   S.sid = Math.random().toString(36).substr(2,5).toUpperCase();
   const meta = {fecha:todayISO(), hora_inicio:nowHM(), carrera:'Pedagogía en Química y Ciencias Naturales', createdAt:Date.now()};
   await db.ref(P('meta')).update(meta);
@@ -462,6 +468,7 @@ async function enterSession(){
   $('sh-code').textContent = S.sid;
   $('sh-role').innerHTML = '<span class="pill pill-'+S.role+'">'+ROLE[S.role].short+'</span>';
   buildMetaForm();
+  $('ping-btn').style.display = isManager()?'':'none';
   attachListeners();
   show('lobby');
 }
@@ -505,7 +512,11 @@ function buildMetaForm(){
   $('meta-form').innerHTML = META_FIELDS.map(f=>
     '<div><p class="label">'+esc(f.label)+'</p><input type="'+(f.type||'text')+'" data-meta="'+f.k+'" placeholder="'+esc(f.def||'')+'"></div>'
   ).join('');
+  $('meta-note').textContent = isManager() ? 'Completa los datos: se sincronizan con todos los dispositivos y alimentan la sección I del informe.' : 'Solo el tutor universitario completa estos datos. Aquí los ves en tiempo real.';
   document.querySelectorAll('[data-meta]').forEach(el=>{
+    el.readOnly = !isManager();
+    el.style.background = isManager() ? '' : 'var(--surface2)';
+    if(!isManager()) return;
     el.oninput = ()=>{ S.meta[el.dataset.meta]=el.value; saveMeta(el.dataset.meta, el.value); };
   });
 }
@@ -698,6 +709,7 @@ async function callAI(task, messages){
 }
 async function pingAI(ev){
   if(ev) ev.stopPropagation();
+  if(!guard()) return;
   if(S.ai.state==='running') return;
   $('ai-ping').textContent='Probando…';
   try{
@@ -868,6 +880,7 @@ function aiBusyElsewhere(){
   return a.state==='running' && Date.now()-(a.updatedAt||0) < AI_TIMEOUT_MS+30000;
 }
 async function generateAnalysis(){
+  if(!guard()) return;
   if(aiBusyElsewhere()){ alert('La IA ya está procesando una solicitud'+(S.ai.by?' iniciada por '+ROLE[S.ai.by]?.short:'')+'. Espera a que termine.'); return; }
   if(!expectedPairs().length){ alert('Aún no hay respuestas para analizar.'); return; }
   try{
@@ -887,6 +900,7 @@ async function generateAnalysis(){
   await generateReport(true);
 }
 async function generateReport(chained){
+  if(!guard()) return;
   if(!chained && aiBusyElsewhere()){ alert('La IA ya está procesando otra solicitud. Espera a que termine.'); return; }
   if(!expectedPairs().length){ alert('Aún no hay respuestas para redactar el informe.'); return; }
   try{
@@ -1059,8 +1073,10 @@ function renderMapTab(){
     box.innerHTML='<div class="card"><h2>Análisis IA de la tríada</h2>'
       +'<p class="muted" style="margin-bottom:.8rem">La IA ubica cada respuesta en ALACT × Noticing × práctica científica, dibuja las trayectorias por rol y redacta el borrador del informe. El estado se ve en tiempo real en la barra superior, en los tres dispositivos.</p>'
       +'<div class="stats" style="margin-bottom:.8rem">'+ROLE_KEYS.map(r=>'<div class="stat"><div class="stat-n">'+countAnswers(r)+'/7</div><div class="stat-l">'+ROLE[r].short+'</div></div>').join('')+'</div>'
-      +'<button class="btn btn-dark btn-full" onclick="generateAnalysis()" '+(running||!ready?'disabled':'')+'>'+(running?'<span class="spinner" style="border-top-color:#fff"></span> Procesando…':'Generar mapa e informe')+'</button>'
-      +(ready && ready<21?'<p class="muted" style="margin-top:.5rem">Hay '+ready+' de 21 respuestas. Puedes generar ahora o esperar a que todos terminen.</p>':'')
+      +(isManager()
+        ? '<button class="btn btn-dark btn-full" onclick="generateAnalysis()" '+(running||!ready?'disabled':'')+'>'+(running?'<span class="spinner" style="border-top-color:#fff"></span> Procesando…':'Generar mapa e informe')+'</button>'
+        : '<div class="callout">'+(running?'<span class="spinner"></span> La IA está procesando el análisis…':'El tutor universitario generará el análisis cuando la tríada termine. El mapa aparecerá aquí automáticamente.')+'</div>')
+      +(isManager() && ready && ready<21?'<p class="muted" style="margin-top:.5rem">Hay '+ready+' de 21 respuestas. Puedes generar ahora o esperar a que todos terminen.</p>':'')
       +'</div>';
     return;
   }
@@ -1093,7 +1109,7 @@ function renderMapTab(){
     +'</div>';
   if(Object.keys(m.role_profiles||{}).length) h+='<div class="grid3" style="margin-bottom:1rem">'+ROLE_KEYS.map(r=>'<div class="card" style="border-top:3px solid '+ROLE[r].c+'"><h3 style="color:'+ROLE[r].d+'">'+ROLE[r].label+'</h3><p style="font-size:13.5px">'+esc(m.role_profiles[r]||'—')+'</p></div>').join('')+'</div>';
   h+='<div class="card"><details><summary>Tabla de codificación ('+nodes.length+' respuestas)</summary><div style="overflow-x:auto;margin-top:.6rem">'+codingTable(nodes)+'</div></details></div>';
-  h+='<div class="row"><button class="btn btn-dark grow" onclick="if(confirm(\'¿Regenerar el análisis? Se reemplazarán el mapa y el borrador del informe.\'))generateAnalysis()" '+(running?'disabled':'')+'>↺ Regenerar análisis</button><button class="btn grow" onclick="switchTab(\'report\')">Ver informe →</button></div>';
+  h+='<div class="row">'+(isManager()?'<button class="btn btn-dark grow" onclick="if(confirm(\'¿Regenerar el análisis? Se reemplazarán el mapa y el borrador del informe.\'))generateAnalysis()" '+(running?'disabled':'')+'>↺ Regenerar análisis</button>':'')+'<button class="btn grow" onclick="switchTab(\'report\')">Ver informe →</button></div>';
   box.innerHTML=h;
   bindMapHover();
 }
@@ -1180,12 +1196,12 @@ function renderReportTab(){
   if(document.activeElement && document.activeElement.closest && document.activeElement.closest('#report-doc')){ updateReportFields(); return; }
   const hasDraft=!!S.report?.result, hasMap=!!S.map?.result;
   let h='<div class="card"><div class="row"><div class="grow"><h2 style="margin:0">Informe de la tríada</h2>'
-    +'<p class="muted">'+(hasDraft?'Borrador IA ('+esc(modelInfo(S.report.model).name)+', '+fmtDate(S.report.ts)+'). Todos los campos son editables y se sincronizan.':'Formato "Reunión de Triada Formativa". Genera el borrador con IA o complétalo manualmente.')+'</p></div></div>'
+    +'<p class="muted">'+(hasDraft?'Borrador IA ('+esc(modelInfo(S.report.model).name)+', '+fmtDate(S.report.ts)+'). '+(isManager()?'Todos los campos son editables y se sincronizan.':'Solo lectura: lo edita el tutor universitario y lo ves actualizado en tiempo real.'):(isManager()?'Formato "Reunión de Triada Formativa". Genera el borrador con IA o complétalo manualmente.':'El tutor universitario completa este informe; lo verás aquí en tiempo real.'))+'</p></div></div>'
     +'<div class="row" style="margin-top:.7rem">'
-    +'<button class="btn btn-dark" onclick="'+(hasMap?'generateReport(false)':'generateAnalysis()')+'" '+(running?'disabled':'')+'>'+(hasDraft?'↺ Regenerar borrador':'Generar borrador con IA')+'</button>'
+    +(isManager()?'<button class="btn btn-dark" onclick="'+(hasMap?'generateReport(false)':'generateAnalysis()')+'" '+(running?'disabled':'')+'>'+(hasDraft?'↺ Regenerar borrador':'Generar borrador con IA')+'</button>':'')
     +'<button class="btn" onclick="exportDocx(this)">↓ Word (.docx)</button>'
     +'<button class="btn" onclick="window.print()">Imprimir / PDF</button>'
-    +(Object.keys(S.edits).length?'<button class="btn btn-sm" onclick="if(confirm(\'¿Descartar las ediciones manuales y volver al borrador IA?\'))db.ref(P(\'report_edits\')).remove()">Descartar ediciones</button>':'')
+    +(isManager() && Object.keys(S.edits).length?'<button class="btn btn-sm" onclick="if(confirm(\'¿Descartar las ediciones manuales y volver al borrador IA?\'))db.ref(P(\'report_edits\')).remove()">Descartar ediciones</button>':'')
     +'</div></div>';
   h+='<div class="doc-wrap"><div class="doc" id="report-doc">'
     +'<h1>REUNIÓN DE TRIADA FORMATIVA</h1>'
@@ -1230,6 +1246,7 @@ function renderReportTab(){
   box.innerHTML=h;
   document.querySelectorAll('#report-doc [data-f]').forEach(el=>{
     el.value=fieldValue(el.dataset.f); autosize(el);
+    if(!isManager()){ el.readOnly=true; el.tabIndex=-1; return; }
     el.addEventListener('input', ()=>{ autosize(el); if(el.dataset.f.startsWith('meta.')) S.meta[el.dataset.f.slice(5)]=el.value; else S.edits[el.dataset.f]=el.value; saveEdit(el.dataset.f, el.value); });
   });
 }

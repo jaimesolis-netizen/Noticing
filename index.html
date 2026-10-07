@@ -434,15 +434,26 @@ function homeError(msg){
 async function createSession(){
   if(!S.role) return homeError('Primero selecciona tu rol');
   if(!isManager()) return homeError('Solo el tutor universitario crea la sesión. Pídele el código y únete.');
-  S.sid = Math.random().toString(36).substr(2,5).toUpperCase();
+  // never reuse an existing code: a new session must not touch an old one
+  let code, exists=true, tries=0;
+  while(exists && tries<10){
+    code = Math.random().toString(36).substr(2,5).toUpperCase();
+    exists = (await db.ref('sessions/'+code).get()).val()!=null; tries++;
+  }
+  if(exists) return homeError('No se pudo generar un código libre. Intenta de nuevo.');
+  S.sid = code;
   const meta = {fecha:todayISO(), hora_inicio:nowHM(), carrera:'Pedagogía en Química y Ciencias Naturales', createdAt:Date.now()};
   await db.ref(P('meta')).update(meta);
   enterSession();
 }
-function joinSession(){
+async function joinSession(){
   if(!S.role) return homeError('Primero selecciona tu rol');
   const code = $('session-input').value.trim().toUpperCase();
   if(!code) return homeError('Ingresa un código de sesión');
+  const snap = (await db.ref('sessions/'+code).get()).val();
+  if(!snap) return homeError('No existe una sesión con el código '+code+'. Revisa el código con el tutor.');
+  const p = snap.presence?.[S.role];
+  if(p && p.online!==false && !confirm('Ya hay un '+ROLE[S.role].short+' conectado en esta sesión. Si continúas, compartirán las mismas respuestas de ese rol. ¿Continuar?')) return;
   S.sid = code; enterSession();
 }
 function goHome(){

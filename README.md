@@ -100,20 +100,24 @@ const firebaseConfig = {
 
 ## Estructura de datos en Firebase
 
+La raíz depende del período académico que el tutor elige al crear la sesión: 2° semestre 2026 → `sessions_v2`; otros períodos → `sessions_{año}_s{semestre}` (p. ej. `sessions_2027_s1`). Un índice permite que los integrantes entren solo con el código.
+
 ```
-sessions/
-  └── {CODIGO-SESION}/
+session_index/
+  └── {CODIGO}: { root, anio, semestre, createdAt }
+
+sessions_v2/
+  └── {CODIGO}/
+        ├── meta/              ← datos de la reunión, período, estado (abierta/cerrada), bitácora tipo
         ├── presence/          ← roles conectados
-        ├── meta/              ← datos de la reunión (sección I del informe)
-        ├── answers/
-        │     ├── student/     ← respuestas por pregunta (att-L, att-R, ... dec-D)
-        │     ├── tutor/
-        │     └── mentor/
+        ├── answers/{rol}/{pregunta}
         ├── ai_status/         ← estado de la IA en tiempo real
-        ├── map/               ← resultado del análisis IA (+ modelo, tokens, tiempo)
+        ├── map/               ← análisis IA (+ modelo, tokens, tiempo)
         ├── report/            ← borrador IA del informe
-        └── report_edits/      ← ediciones manuales del informe
+        └── report_edits/      ← ediciones del tutor
 ```
+
+Si las reglas de Firebase no están en modo de prueba, deben permitir lectura y escritura en `session_index` y en `sessions_v2`.
 
 ---
 

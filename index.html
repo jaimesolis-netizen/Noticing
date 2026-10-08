@@ -68,6 +68,7 @@ h3{font-size:15.5px;font-weight:700;margin-bottom:.35rem}
 .grow{flex:1}
 input[type=text],input[type=date],input[type=time],input[type=number],textarea{width:100%;border:1px solid var(--line2);border-radius:var(--rs);padding:.6rem .8rem;font-size:14.5px;font-family:inherit;color:var(--ink);background:var(--surface);box-shadow:inset 0 1px 2px rgba(22,36,74,.05)}
 input:focus,textarea:focus{outline:none;border-color:var(--st);box-shadow:0 0 0 3px rgba(90,79,207,.18)}
+select.sel{flex:1;border:1px solid var(--line2);border-radius:var(--rs);padding:.55rem .7rem;font:inherit;font-size:14px;background:var(--surface);color:var(--ink)}
 input[readonly],textarea[readonly]{background:var(--surface2);color:var(--ink2)}
 textarea{min-height:120px;resize:vertical;line-height:1.6}
 .pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:3px 10px 3px 4px;border-radius:999px;white-space:nowrap}
@@ -108,6 +109,11 @@ textarea{min-height:120px;resize:vertical;line-height:1.6}
 #session-head.on{display:block}
 .sh-inner{max-width:1160px;margin:0 auto;padding:10px 16px 8px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .sh-brand{display:flex;align-items:center;gap:10px}
+.sh-actions{display:flex;gap:6px}
+.sh-actions .btn{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2);box-shadow:none}
+.sh-actions .btn:hover{background:rgba(255,255,255,.18)}
+#close-btn{border-color:rgba(255,160,150,.45);color:#FFD3CC}
+.closed-banner{background:#FFF4E5;border:1px solid #F3C98B;color:#7A4A0B;border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;font-size:14px}
 .sh-code{font-family:var(--display);font-weight:700;letter-spacing:.14em;font-size:18px;color:#fff;font-variant-numeric:tabular-nums}
 .sh-sub{font-size:12px;color:rgba(255,255,255,.55)}
 #sh-role .pill{box-shadow:0 0 0 1px rgba(255,255,255,.15)}
@@ -314,10 +320,15 @@ details summary{cursor:pointer;font-weight:700;font-size:14.5px;font-family:var(
     <div class="sh-brand">
       <div><div class="sh-sub">Sesión</div><div class="sh-code" id="sh-code">—</div></div>
       <span id="sh-role"></span>
+      <span id="sh-period" class="sh-sub" style="align-self:flex-end;margin-bottom:3px"></span>
     </div>
     <div class="pres">
       <svg class="pres-tri" id="sh-tri" viewBox="0 0 58 40" aria-hidden="true"></svg>
       <div class="pres-list" id="sh-pres"></div>
+    </div>
+    <div class="sh-actions">
+      <button class="btn btn-sm" id="close-btn" style="display:none" onclick="closeSessionForAll()">Cerrar sesión para todos</button>
+      <button class="btn btn-sm" onclick="leaveSession()">Salir</button>
     </div>
   </div>
   <div class="aibar">
@@ -388,6 +399,11 @@ details summary{cursor:pointer;font-weight:700;font-size:14.5px;font-family:var(
       </div>
       <p id="home-error" class="error" style="display:none"></p>
       <div class="divider"></div>
+      <p class="label">Período académico de la sesión nueva</p>
+      <div class="row" style="flex-wrap:nowrap;margin-bottom:.6rem">
+        <select id="per-sem" class="sel"><option value="1">1er semestre</option><option value="2">2° semestre</option></select>
+        <select id="per-anio" class="sel"></select>
+      </div>
       <button class="btn btn-full" onclick="createSession()">Crear sesión nueva (tutor)</button>
     </div>
   </div>
@@ -608,6 +624,30 @@ const BITACORA_TIPO = {
  ]
 };
 const BOOK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5"/><path d="M8 7h8M8 11h6"/></svg>';
+/* Wording depends on who answers and which bitácora is used:
+   - own bitácora + student  → first person (it's their own logbook)
+   - own bitácora + tutor/mentor → "el estudiante"
+   - bitácora tipo (any role) → "la autora de la bitácora" */
+const Q_VARIANTS = {
+  student:{
+    'att-L':'Al releer tu bitácora, ¿qué de lo que describiste te llama la atención y por qué?',
+    'int-L':'¿Qué explicación o sentido le diste en tu bitácora a lo que ocurrió? ¿Qué conectaste con el aprendizaje de ciencias?',
+    'int-R':'Releyendo hoy ese episodio, ¿cómo lo interpretas? ¿En qué tu lectura actual coincide o difiere de lo que escribiste en la bitácora, y qué lo explica?',
+    'dec-L':'¿Qué decisión pedagógica propusiste o anticipaste en tu bitácora frente a ese episodio y qué la fundamentó?',
+    'dec-R':'¿Qué decidirías hoy frente a ese episodio, y en qué te basas de lo que ya comprendes sobre la enseñanza de las ciencias?'
+  },
+  tipo:{
+    'int-L':'¿Qué explicación o sentido le da la autora de la bitácora a lo que ocurrió? ¿Qué conecta con el aprendizaje de ciencias?',
+    'int-R':'¿Cómo interpretas tú ese episodio? ¿En qué tu lectura coincide o difiere de la de la autora de la bitácora, y qué lo explica?',
+    'dec-L':'¿Qué decisión pedagógica propone o anticipa la autora en su bitácora frente a ese episodio y qué la fundamenta?',
+    'dec-R':'¿Qué decidirías o recomendarías tú frente a ese episodio, y en qué se basa esa decisión en lo que la autora ya comprende sobre la enseñanza de las ciencias?'
+  }
+};
+function qText(q, role){
+  if(typeof usingTipo==='function' && usingTipo()) return Q_VARIANTS.tipo[q.id] || q.text;
+  if(role==='student') return Q_VARIANTS.student[q.id] || q.text;
+  return q.text;
+}
 const QBY = Object.fromEntries(QUESTIONS.map(q=>[q.id,q]));
 const ROLE_KEYS = ['student','tutor','mentor'];
 const ROLE = {
@@ -634,7 +674,7 @@ const META_FIELDS = [
 // ═══════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════
-const S = {role:null, sid:null, currentQ:0, all:{}, meta:{}, presence:{}, map:null, report:null, edits:{},
+const S = {root:'sessions_v2', role:null, sid:null, currentQ:0, all:{}, meta:{}, presence:{}, map:null, report:null, edits:{},
   ai:{state:'idle'}, tab:'resp', filter:'all', hidden:{}, refs:[], mapSeen:0, reportSeen:0};
 
 const $ = id => document.getElementById(id);
@@ -644,7 +684,11 @@ const isManager = () => S.role===MANAGER;
 function guard(){ if(isManager()) return true; alert('Solo el tutor universitario puede realizar esta acción.'); return false; }
 const TUTOR_ONLY_NOTE = '<p class="muted" style="margin-top:.5rem">🔒 Gestionado por el tutor universitario.</p>';
 const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const P = path => 'sessions/'+S.sid+(path?'/'+path:'');
+// Firebase root depends on the academic period. 2° semestre 2026 → sessions_v2.
+function rootFor(anio, sem){ return (+anio===2026 && +sem===2) ? 'sessions_v2' : 'sessions_'+anio+'_s'+sem; }
+function currentPeriod(){ const d=new Date(), m=d.getMonth()+1, y=d.getFullYear(); if(m<=2) return {anio:y-1, sem:2}; return {anio:y, sem: m>=8?2:1}; }
+function periodLabel(anio, sem){ return (+sem===1?'1er':'2°')+' semestre '+anio; }
+const P = path => S.root+'/'+S.sid+(path?'/'+path:'');
 const lsGet = k => { try{return localStorage.getItem(k);}catch(e){return null;} };
 const lsSet = (k,v) => { try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,v);}catch(e){} };
 function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
@@ -677,14 +721,18 @@ async function createSession(){
   if(!S.role) return homeError('Primero selecciona tu rol');
   if(!isManager()) return homeError('Solo el tutor universitario crea la sesión. Pídele el código y únete.');
   // never reuse an existing code: a new session must not touch an old one
+  const anio=+$('per-anio').value, sem=+$('per-sem').value;
+  lsSet('ntr_period', JSON.stringify({anio, sem}));
+  S.root = rootFor(anio, sem);
   let code, exists=true, tries=0;
   while(exists && tries<10){
     code = Math.random().toString(36).substr(2,5).toUpperCase();
-    exists = (await db.ref('sessions/'+code).get()).val()!=null; tries++;
+    exists = (await db.ref('session_index/'+code).get()).val()!=null || (await db.ref(S.root+'/'+code).get()).val()!=null; tries++;
   }
   if(exists) return homeError('No se pudo generar un código libre. Intenta de nuevo.');
   S.sid = code;
-  const meta = {fecha:todayISO(), hora_inicio:nowHM(), carrera:'Pedagogía en Química y Ciencias Naturales', createdAt:Date.now()};
+  await db.ref('session_index/'+code).set({root:S.root, anio, semestre:sem, createdAt:Date.now()});
+  const meta = {fecha:todayISO(), hora_inicio:nowHM(), carrera:'Pedagogía en Química y Ciencias Naturales', createdAt:Date.now(), anio, semestre:sem, periodo:periodLabel(anio,sem), estado:'abierta'};
   await db.ref(P('meta')).update(meta);
   enterSession();
 }
@@ -692,12 +740,55 @@ async function joinSession(){
   if(!S.role) return homeError('Primero selecciona tu rol');
   const code = $('session-input').value.trim().toUpperCase();
   if(!code) return homeError('Ingresa un código de sesión');
-  const snap = (await db.ref('sessions/'+code).get()).val();
-  if(!snap) return homeError('No existe una sesión con el código '+code+'. Revisa el código con el tutor.');
+  const found = await findSession(code);
+  if(!found) return homeError('No existe una sesión con el código '+code+'. Revisa el código con el tutor.');
+  const snap = found.data;
+  if(snap.meta?.estado==='cerrada' && !isManager()) return homeError('Esta sesión fue cerrada por el tutor.');
+  S.root = found.root;
   const p = snap.presence?.[S.role];
   if(p && p.online!==false && !confirm('Ya hay un '+ROLE[S.role].short+' conectado en esta sesión. Si continúas, compartirán las mismas respuestas de ese rol. ¿Continuar?')) return;
   S.sid = code; enterSession();
 }
+// Look the code up in the index first, then in the current period, then in the legacy root
+async function findSession(code){
+  const idx = (await db.ref('session_index/'+code).get()).val();
+  const cp = currentPeriod();
+  const roots = [idx?.root, rootFor(cp.anio, cp.sem), 'sessions'].filter((r,i,a)=>r && a.indexOf(r)===i);
+  for(const root of roots){
+    const data = (await db.ref(root+'/'+code).get()).val();
+    if(data) return {root, data};
+  }
+  return null;
+}
+function leaveSession(){
+  if(!confirm('¿Salir de la sesión? Tus respuestas quedan guardadas y puedes volver a entrar con el mismo código.')) return;
+  goHome();
+}
+async function closeSessionForAll(){
+  if(!guard()) return;
+  if(!confirm('¿Cerrar la sesión para todos? Estudiante y mentor saldrán y no podrán volver a entrar. Los datos, el mapa y el informe quedan guardados.')) return;
+  const upd = {estado:'cerrada', cerradaAt:Date.now()};
+  if(!S.meta.hora_termino) upd.hora_termino = nowHM();
+  await db.ref(P('meta')).update(upd);
+}
+function onSessionClosed(){
+  if(S.meta.estado!=='cerrada' || !S.sid) return;
+  if(isManager()){ renderClosedBanner(); return; }
+  const code=S.sid; goHome();
+  homeError('El tutor cerró la sesión '+code+'. Gracias por participar.');
+}
+function renderClosedBanner(){
+  const closed = S.meta.estado==='cerrada';
+  document.querySelectorAll('.closed-banner').forEach(b=>b.remove());
+  $('close-btn').style.display = isManager() && !closed ? '' : 'none';
+  if(!closed) return;
+  ['screen-lobby','screen-view'].forEach(id=>{
+    const b=document.createElement('div'); b.className='closed-banner';
+    b.innerHTML='Sesión cerrada ('+fmtDate(S.meta.cerradaAt)+'). Los demás integrantes ya no pueden entrar. <button class="btn btn-sm" style="margin-left:8px" onclick="reopenSession()">Reabrir</button>';
+    $(id).prepend(b);
+  });
+}
+async function reopenSession(){ if(!guard()) return; await db.ref(P('meta')).update({estado:'abierta', cerradaAt:null}); }
 function goHome(){
   detachListeners();
   if(S.sid && S.role) db.ref(P('presence/'+S.role)).update({online:false});
@@ -713,7 +804,7 @@ function goToView(){ show('view'); renderView(); }
 // SESSION + REALTIME LISTENERS
 // ═══════════════════════════════════════════
 async function enterSession(){
-  lsSet('ntr_session', JSON.stringify({sid:S.sid, role:S.role}));
+  lsSet('ntr_session', JSON.stringify({sid:S.sid, role:S.role, root:S.root}));
   const pref = db.ref(P('presence/'+S.role));
   await pref.set({role:S.role, label:ROLE[S.role].label, ts:Date.now(), online:true});
   pref.onDisconnect().update({online:false, ts:firebase.database.ServerValue.TIMESTAMP});
@@ -722,6 +813,7 @@ async function enterSession(){
   $('sh-role').innerHTML = pill(S.role);
   buildMetaForm();
   $('ping-btn').style.display = isManager()?'':'none';
+  $('close-btn').style.display = isManager()?'':'none';
   attachListeners();
   show('lobby');
 }
@@ -731,7 +823,7 @@ function attachListeners(){
   detachListeners();
   listen('presence', v=>{ S.presence=v||{}; renderPresence(); });
   listen('answers', v=>{ S.all=v||{}; renderPresence(); onDataChange('answers'); });
-  listen('meta', v=>{ S.meta=v||{}; syncMetaInputs(); onDataChange('meta'); });
+  listen('meta', v=>{ S.meta=v||{}; syncMetaInputs(); onDataChange('meta'); $('sh-period').textContent = S.meta.periodo||''; renderClosedBanner(); onSessionClosed(); });
   listen('map', v=>{ S.map=v||null; onDataChange('map'); });
   listen('report', v=>{ S.report=v||null; onDataChange('report'); });
   listen('report_edits', v=>{ S.edits=v||{}; onDataChange('edits'); });
@@ -853,7 +945,7 @@ function renderQuestion(){
   $('q-icon').innerHTML=PHASE_ICON[q.phase];
   $('q-phase').textContent=q.phaseLabel;
   $('q-type').innerHTML='<span class="qtype">'+q.typeLabel+'</span>';
-  $('q-text').textContent=q.text;
+  $('q-text').textContent=qText(q, S.role);
   $('q-answer').value=myAnswer(q.id);
   $('q-saved').textContent = myAnswer(q.id) ? 'Guardado' : '';
   $('q-counter').textContent=(S.currentQ+1)+' / '+total;
@@ -918,7 +1010,7 @@ function renderResponses(){
       return '<div class="bubble bubble-'+r+'"><span class="av sm" style="background:'+ROLE[r].c+'">'+ROLE[r].abbr+'</span><div class="bubble-body"><div class="bubble-label">'+ROLE[r].label+'</div>'+esc(a)+'</div></div>';
     }).join('');
     html+='<div class="card"><div class="q-head" style="margin-bottom:.5rem"><span class="phase-ic" style="width:34px;height:34px;border-radius:10px">'+PHASE_ICON[q.phase]+'</span><div><div style="font-weight:700;font-family:var(--display)">'+q.n+'. '+q.phaseLabel+'</div><span class="qtype">'+q.typeLabel+'</span></div></div>'
-      +'<p style="font-size:14.5px;color:var(--ink2);max-width:75ch">'+esc(q.text)+'</p>'
+      +'<p style="font-size:14.5px;color:var(--ink2);max-width:75ch">'+esc(qText(q, S.role))+'</p>'
       +(bubbles||'<div class="empty" style="padding:.6rem">Sin respuestas aún</div>')+'</div>';
   });
   $('view-content').innerHTML=html;
@@ -1166,9 +1258,14 @@ Responde SOLO con JSON válido, sin texto previo, sin backticks, sin razonamient
  "summary":"resumen del encuentro en 3-4 frases: foco del episodio, cómo se movió la reflexión entre preguntas y actores, y principal tensión",
  "role_profiles":{"student":"1-2 frases","tutor":"1-2 frases","mentor":"1-2 frases"}
 }`;
+function wordingNote(){
+  return usingTipo()
+    ? 'NOTA: los tres actores analizan la misma bitácora tipo, escrita por otra practicante; "la autora" es esa practicante.\n'
+    : 'NOTA: el estudiante responde sobre su propia bitácora (preguntas en primera persona); tutor y mentor responden sobre la bitácora del estudiante.\n';
+}
 function mapUserMsg(){
   const pairs = expectedPairs();
-  return episodeBlock()
+  return episodeBlock() + wordingNote()
     + 'Genera exactamente '+pairs.length+' nodos, uno por cada par rol:pregunta respondido: '+pairs.join(', ')+'.\n'
     + 'Respuestas de la tríada:'+answersBlock();
 }
@@ -1531,6 +1628,7 @@ function renderReportTab(){
     +'<div class="sub">Análisis y evaluación de la importancia de los factores prioritarios de cada contexto para la implementación de la enseñanza.</div>'
     +'<h4>I. Información general:</h4><table><tbody>'
     +'<tr><td class="k">Tipo de Práctica</td><td><b>PRÁCTICA DOCENTE FINAL</b></td></tr>'
+    +(S.meta.periodo?'<tr><td class="k">Período académico</td><td>'+esc(S.meta.periodo)+'</td></tr>':'')
     +META_FIELDS.map(f=>'<tr><td class="k">'+esc(f.label)+'</td><td>'+fieldIN('meta.'+f.k, f.type)+'</td></tr>').join('')
     +'</tbody></table>'
     +'<p class="body">'+INTRO_1+'</p><p class="body">'+INTRO_2+'</p>'
@@ -1562,7 +1660,7 @@ function renderReportTab(){
       +'</tbody></table></div>';
   }
   h+='<div class="annex"><h4>Anexo '+(hasMap?'C':'A')+'. Respuestas de la tríada</h4>'
-    + QUESTIONS.map(q=>'<p style="margin-top:10px"><b>'+q.n+'. '+q.phaseLabel+' · '+q.typeLabel+'.</b> '+esc(q.text)+'</p><table><tbody>'
+    + QUESTIONS.map(q=>'<p style="margin-top:10px"><b>'+q.n+'. '+q.phaseLabel+' · '+q.typeLabel+'.</b> '+esc(qText(q,'tutor'))+'</p><table><tbody>'
       + ROLE_KEYS.map(r=>'<tr><td class="k" style="width:22%">'+ROLE[r].short+'</td><td style="white-space:pre-wrap">'+esc(S.all[r]?.[q.id]?.text||'—')+'</td></tr>').join('')+'</tbody></table>').join('')
     +'</div>';
   h+='<p class="ai-note">'+aiNote()+'</p></div></div>';
@@ -1616,7 +1714,7 @@ async function exportDocx(btn){
     ch.push(para('REUNIÓN DE TRIADA FORMATIVA',{bold:true,size:26},{alignment:AlignmentType.CENTER}));
     ch.push(para('Análisis y evaluación de la importancia de los factores prioritarios de cada contexto para la implementación de la enseñanza.',{bold:true},{alignment:AlignmentType.CENTER,spacing:{after:240}}));
     ch.push(head('I. Información general:'));
-    const infoRows=[['Tipo de Práctica','PRÁCTICA DOCENTE FINAL']].concat(META_FIELDS.map(f=>[f.label, f.type==='date'&&v('meta.'+f.k)? new Date(v('meta.'+f.k)+'T12:00:00').toLocaleDateString('es-CL') : v('meta.'+f.k)]));
+    const infoRows=[['Tipo de Práctica','PRÁCTICA DOCENTE FINAL']].concat(S.meta.periodo?[['Período académico',S.meta.periodo]]:[]).concat(META_FIELDS.map(f=>[f.label, f.type==='date'&&v('meta.'+f.k)? new Date(v('meta.'+f.k)+'T12:00:00').toLocaleDateString('es-CL') : v('meta.'+f.k)]));
     ch.push(new Table({width:full, rows:infoRows.map(([k,val],i)=>new TableRow({children:[
       cell([para(k,{bold:true},{spacing:{after:0}})],{width:{size:38,type:WidthType.PERCENTAGE},shading:shade('F2F2F2')}),
       cell([para(val||' ',i===0?{bold:true}:{},{spacing:{after:0}})],{width:{size:62,type:WidthType.PERCENTAGE}})]}))}));
@@ -1660,7 +1758,7 @@ async function exportDocx(btn){
     ch.push(new Paragraph({children:[new PageBreak()]}));
     ch.push(head('Anexo '+annex+'. Respuestas de la tríada'));
     QUESTIONS.forEach(q=>{
-      ch.push(new Paragraph({children:[txt(q.n+'. '+q.phaseLabel+' · '+q.typeLabel+'. ',{bold:true}),txt(q.text)],spacing:{before:160,after:80}}));
+      ch.push(new Paragraph({children:[txt(q.n+'. '+q.phaseLabel+' · '+q.typeLabel+'. ',{bold:true}),txt(qText(q,'tutor'))],spacing:{before:160,after:80}}));
       ch.push(new Table({width:full, rows:ROLE_KEYS.map(r=>new TableRow({children:[
         cell([para(ROLE[r].short,{bold:true,size:20},{spacing:{after:0}})],{width:{size:20,type:WidthType.PERCENTAGE},shading:shade('F2F2F2')}),
         cell(lines(S.all[r]?.[q.id]?.text||'—',{size:20}),{width:{size:80,type:WidthType.PERCENTAGE}})]}))}));
@@ -1680,7 +1778,7 @@ async function exportDocx(btn){
 function download(blob, name){ const u=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=u; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),1000); }
 async function exportJSON(){
   const snap=await db.ref(P()).get();
-  download(new Blob([JSON.stringify({sessionId:S.sid, exportedAt:new Date().toISOString(), ...(snap.val()||{})},null,2)],{type:'application/json'}), 'noticing-'+S.sid+'-'+Date.now()+'.json');
+  download(new Blob([JSON.stringify({sessionId:S.sid, firebaseRoot:S.root, exportedAt:new Date().toISOString(), ...(snap.val()||{})},null,2)],{type:'application/json'}), 'noticing-'+S.sid+'-'+Date.now()+'.json');
 }
 
 // ═══════════════════════════════════════════
@@ -1688,12 +1786,22 @@ async function exportJSON(){
 // ═══════════════════════════════════════════
 (function boot(){
   renderAIStatus();
+  const cp=currentPeriod(); let per=cp;
+  try{ per = JSON.parse(lsGet('ntr_period')||'null') || cp; }catch(e){}
+  const ys=[]; for(let y=2026; y<=cp.anio+1; y++) ys.push(y);
+  $('per-anio').innerHTML = ys.map(y=>'<option'+(y===+per.anio?' selected':'')+'>'+y+'</option>').join('');
+  $('per-sem').value = String(per.sem);
   const qs=new URLSearchParams(location.search).get('s');
   if(qs) $('session-input').value=qs.toUpperCase();
   try{
     const saved=JSON.parse(lsGet('ntr_session')||'null');
     if(saved && saved.sid && saved.role && (!qs || qs.toUpperCase()===saved.sid)){
-      S.role=saved.role; S.sid=saved.sid; selectRole(saved.role); enterSession();
+      S.role=saved.role; S.sid=saved.sid; selectRole(saved.role);
+      findSession(saved.sid).then(f=>{
+        if(!f){ lsSet('ntr_session', null); return; }
+        if(f.data.meta?.estado==='cerrada' && saved.role!==MANAGER){ lsSet('ntr_session', null); return; }
+        S.root=f.root; enterSession();
+      });
     }
   }catch(e){}
 })();

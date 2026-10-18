@@ -519,11 +519,11 @@ const QUESTIONS = [
   {id:'int-L', n:3, phase:'int', phaseLabel:'Interpretar', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué explicación o sentido le da el estudiante en su bitácora a lo que ocurrió? ¿Qué conecta con el aprendizaje de ciencias?'},
   {id:'int-R', n:4, phase:'int', phaseLabel:'Interpretar', type:'R', typeLabel:'Reflexiva',
-   text:'¿Cómo interpretas tú ese episodio? ¿En qué tu lectura coincide o difiere de la del estudiante, y qué lo explica?'},
+   text:'Desde tu rol en la tríada, ¿cómo interpretas ese episodio?'},
   {id:'dec-L', n:5, phase:'dec', phaseLabel:'Decidir', type:'L', typeLabel:'Lectura de bitácora',
    text:'¿Qué decisión pedagógica propone o anticipa el estudiante en su bitácora frente a ese episodio y qué la fundamenta?'},
   {id:'dec-R', n:6, phase:'dec', phaseLabel:'Decidir', type:'R', typeLabel:'Reflexiva',
-   text:'¿Qué decidirías o recomendarías tú, y en qué se basa esa decisión en lo que el estudiante ya comprende sobre la enseñanza de las ciencias?'},
+   text:'¿Qué decidirías o recomendarías frente a este episodio? ¿En qué se basa tu decisión?'},
   {id:'dec-D', n:7, phase:'dec', phaseLabel:'Decidir', type:'D', typeLabel:'Dialógica',
    text:'¿Qué le preguntarías a otro miembro de la tríada sobre qué haría o recomendaría frente a este episodio?'}
 ];
@@ -632,15 +632,13 @@ const Q_VARIANTS = {
   student:{
     'att-L':'Al releer tu bitácora, ¿qué de lo que describiste te llama la atención y por qué?',
     'int-L':'¿Qué explicación o sentido le diste en tu bitácora a lo que ocurrió? ¿Qué conectaste con el aprendizaje de ciencias?',
-    'int-R':'Releyendo hoy ese episodio, ¿cómo lo interpretas? ¿En qué tu lectura actual coincide o difiere de lo que escribiste en la bitácora, y qué lo explica?',
+    'int-R':'Desde tu rol en la tríada, ¿cómo interpretas hoy ese episodio?',
     'dec-L':'¿Qué decisión pedagógica propusiste o anticipaste en tu bitácora frente a ese episodio y qué la fundamentó?',
-    'dec-R':'¿Qué decidirías hoy frente a ese episodio, y en qué te basas de lo que ya comprendes sobre la enseñanza de las ciencias?'
+    'dec-R':'¿Qué decidirías hoy frente a ese episodio? ¿En qué se basa tu decisión?'
   },
   tipo:{
     'int-L':'¿Qué explicación o sentido le da la autora de la bitácora a lo que ocurrió? ¿Qué conecta con el aprendizaje de ciencias?',
-    'int-R':'¿Cómo interpretas tú ese episodio? ¿En qué tu lectura coincide o difiere de la de la autora de la bitácora, y qué lo explica?',
-    'dec-L':'¿Qué decisión pedagógica propone o anticipa la autora en su bitácora frente a ese episodio y qué la fundamenta?',
-    'dec-R':'¿Qué decidirías o recomendarías tú frente a ese episodio, y en qué se basa esa decisión en lo que la autora ya comprende sobre la enseñanza de las ciencias?'
+    'dec-L':'¿Qué decisión pedagógica propone o anticipa la autora en su bitácora frente a ese episodio y qué la fundamenta?'
   }
 };
 function qText(q, role){

@@ -42,10 +42,11 @@ Las preguntas D no se responden dentro de la app: quedan registradas como agenda
 
 ## Análisis con IA
 
-La IA se llama a través de un Cloudflare Worker (`cloudflare_worker.js`) que oculta la API key y usa OpenRouter (modelo por defecto: `poolside/laguna-s-2.1:free`). La pestaña **Mapa IA** genera, en dos etapas:
+La IA se llama a través de un Cloudflare Worker (`cloudflare_worker.js`) que oculta la API key y usa OpenRouter con una lista de modelos gratuitos de respaldo (configurable con la variable `OPENROUTER_MODELS`). La pestaña **Mapa IA** genera, en tres etapas:
 
-1. **Análisis de noticing**: cada respuesta se ubica en ALACT × Noticing × práctica científica (indagación, modelización, argumentación, NdC), con profundidad reflexiva, movimiento entre dimensiones, convergencias, divergencias, nudos reflexivos, patrón ALACT, resumen del encuentro y perfil por rol.
-2. **Borrador del informe** en el formato institucional "Reunión de Triada Formativa".
+1. **Codificación ciega**: cada respuesta se envía sola, en orden aleatorio y con un id opaco (sin rol ni tipo de pregunta), y se clasifica en ALACT × Noticing × práctica científica (indagación, modelización, argumentación, NdC) con profundidad reflexiva y un fragmento literal como evidencia. El movimiento entre dimensiones se calcula comparando la dimensión codificada con la de la pregunta. Cada mapa guarda el modelo, la versión del prompt (`prompt_version`), el orden aleatorio y la salida cruda del modelo.
+2. **Síntesis**: con la tabla ya codificada, convergencias, divergencias, nudos reflexivos, patrón ALACT, resumen del encuentro y perfil por rol.
+3. **Borrador del informe** en el formato institucional "Reunión de Triada Formativa".
 
 Visualizaciones: mapa de trayectorias por rol (rol × Atender/Interpretar/Decidir en columnas; fase ALACT × práctica en filas; flechas con el orden de respuesta), trayectoria ALACT a lo largo de las 7 preguntas y ciclo de noticing con el nivel ALACT medio por rol.
 
@@ -117,7 +118,16 @@ sessions_v2/
         └── report_edits/      ← ediciones del tutor
 ```
 
-Si las reglas de Firebase no están en modo de prueba, deben permitir lectura y escritura en `session_index` y en `sessions_v2`.
+### Seguridad
+
+La app inicia sesión de forma anónima en Firebase antes de leer o escribir, y `database.rules.json` define qué se permite:
+
+- Nadie puede leer ni listar la base completa, ni las sesiones de un período: solo se entra a una sesión conociendo su código.
+- Sin autenticación no se lee ni se escribe nada.
+- No se puede borrar ni sobrescribir una sesión completa, sus datos de reunión, su mapa ni su índice.
+- Solo se aceptan las rutas, roles y preguntas del instrumento, con textos de hasta 8000 caracteres.
+
+Para activarlo: en Firebase Console, Authentication → Método de acceso → habilitar **Anónimo**; luego Realtime Database → Reglas → pegar `database.rules.json` → Publicar.
 
 ---
 

@@ -512,7 +512,7 @@ function ensureAuth(){
 async function authOrError(){
   try{ await ensureAuth(); return true; }
   catch(e){
-    homeError(e.code==='auth/admin-restricted-operation' || e.code==='auth/operation-not-allowed'
+    homeError(e.code==='auth/admin-restricted-operation' || e.code==='auth/operation-not-allowed' || e.code==='auth/configuration-not-found'
       ? 'Falta habilitar el acceso anónimo en Firebase (Authentication → Método de acceso → Anónimo).'
       : 'No se pudo conectar con la base de datos ('+(e.code||e.message)+'). Revisa tu conexión o avisa al tutor.');
     return false;
@@ -1068,7 +1068,7 @@ function renderAIStatus(){
   const state = stale ? 'error' : (a.state||'idle');
   $('ai-dot').className = 'ai-dot '+state;
   const who = a.by && a.by!==S.role ? ' ('+ROLE[a.by]?.short+')' : '';
-  const taskName = a.task==='report' ? 'Informe' : (a.task==='map' ? 'Mapa' : (a.task==='ping'?'Conexión':''));
+  const taskName = ({report:'Informe', map:'Codificación (1/3)', synth:'Síntesis (2/3)', ping:'Conexión'})[a.task] || '';
   let txt='En espera';
   if(state==='running') txt = (taskName?taskName+': ':'')+(STAGES[a.stage]||'Procesando')+'…'+who;
   else if(state==='done') txt = (taskName?taskName+' listo':'Listo')+(a.ms?' · '+fmtSecs(a.ms):'')+(a.tokens?' · '+a.tokens+' tok':'');
@@ -1245,50 +1245,102 @@ function answersBlock(){
 function expectedPairs(){
   const out=[]; ROLE_KEYS.forEach(r=>QUESTIONS.forEach(q=>{ if(S.all[r]?.[q.id]?.text?.trim()) out.push(r+':'+q.id); })); return out;
 }
-const MAP_SYSTEM = `Eres un analista experto en noticing docente (Jacobs et al., 2010), el modelo ALACT de reflexión (Korthagen, 2001) y formación inicial de profesores de ciencias naturales.
+// ── Análisis en dos pasos ──
+// 1) Codificación CIEGA: cada respuesta va sola, en orden aleatorio, con un id opaco,
+//    sin rol, sin tipo de pregunta (L/R/D) y sin fases "esperadas". Evita que el modelo
+//    codifique por plantilla (p. ej. L→Looking Back, R→Awareness) en vez de por contenido.
+// 2) Síntesis: con la tabla ya codificada, redacta convergencias, divergencias, etc.
+const PROMPT_VERSION = 'v4-ciego';
+const CODING_SYSTEM = `Eres un codificador experto en noticing docente (Jacobs et al., 2010) y en el modelo ALACT de reflexión (Korthagen, 2001), en formación inicial de profesores de ciencias naturales.
 
-Analizas las respuestas de una tríada formativa (estudiante en formación, tutor universitario, profesor mentor) a un cuestionario de noticing reflexivo sobre un episodio pedagógico de la bitácora del estudiante.
+Codificas respuestas INDIVIDUALES de forma ciega: no sabes quién las escribió ni en qué orden se respondieron. Clasifica cada una SOLO por lo que dice su texto. Dos respuestas a la misma pregunta pueden quedar en fases distintas, y respuestas a preguntas distintas pueden quedar en la misma fase: no busques un patrón.
 
-## TIPOS DE PREGUNTA (por dimensión Atender / Interpretar / Decidir)
-- Lectura (L): describe lo que dice la bitácora. Suele operar en Acción o Looking Back.
-- Reflexiva (R): el actor se posiciona desde su rol; "noticing del noticing". Suele operar en Awareness o Alternatives.
-- Dialógica (D): formula una pregunta a otro actor. Opera en Alternatives o Trial; si es superficial, Looking Back.
+Para cada respuesta decide:
 
-## CRITERIOS ALACT (según el CONTENIDO, no el tipo de pregunta)
-- Acción: describe hechos sin distancia reflexiva.
-- Looking Back: reconstruye lo ocurrido con algo de distancia.
-- Awareness: toma conciencia de por qué notó eso, o de la brecha entre lo esperado y lo ocurrido.
-- Alternatives: genera perspectivas alternativas, cuestiona supuestos, propone otros marcos.
-- Trial: proyecta una acción futura concreta y fundamentada.
-Una respuesta R que solo describe hechos va a Looking Back, no a Awareness.
+1. noticing — qué hace principalmente la respuesta (puede diferir de lo que pide la pregunta):
+   Atender = señala qué observó o le llamó la atención.
+   Interpretar = explica, da sentido, busca causas, conecta con el aprendizaje o la teoría.
+   Decidir = propone, evalúa o pregunta por acciones.
 
-## MOVIMIENTO
-movement=true si en una pregunta de una dimensión el actor ya opera en otra (p. ej. en Atender ya interpreta o decide); movement_to indica hacia cuál.
+2. alact — revisa los indicadores de arriba hacia abajo y elige el PRIMERO que se cumpla con evidencia en el texto:
+   Trial = compromete una acción futura concreta y la vincula a un propósito o criterio ("en la próxima clase haré X para Y").
+   Alternatives = propone al menos una alternativa de acción o de interpretación distinta de lo ocurrido, o cuestiona un supuesto, sin comprometerla en un plan concreto.
+   Awareness = identifica por qué ocurrió (causas, patrones, principios, supuestos o emociones propias) o la brecha entre lo esperado y lo ocurrido.
+   Looking Back = reconstruye lo ocurrido con alguna valoración o mención de lo que se pensó, sintió o quiso en ese momento.
+   Acción = describe o parafrasea hechos sin valoración ni explicación.
+   Si la respuesta es una pregunta dirigida a otra persona, clasifícala por lo que esa pregunta busca (pedir alternativas → Alternatives; pedir un plan → Trial; pedir qué pasó → Looking Back).
 
-## PRÁCTICA CIENTÍFICA del contenido de la respuesta
-Indagación | Modelización | Argumentación | Naturaleza de la ciencia | No identificable.
+3. practice — práctica científica a la que alude el contenido, ya sea en el episodio analizado o en lo que se propone:
+   Indagación = preguntas investigables, observación, experimentación, datos, evidencia empírica.
+   Modelización = modelos, representaciones, esquemas, analogías, clasificaciones o tablas usadas para explicar o predecir.
+   Argumentación = justificar con evidencia, contrastar posiciones, debatir, refutar.
+   NdC = cómo se construye y valida el conocimiento científico: provisionalidad, criterios o convenciones de la comunidad científica, errores conceptuales en fuentes.
+   No identificable = SOLO si la respuesta trata exclusivamente de gestión de aula, emociones o aspectos generales sin ningún contenido científico.
 
-## FORMATO
-Responde SOLO con JSON válido, sin texto previo, sin backticks, sin razonamiento visible. Sé breve: alact_rationale ≤ 15 palabras; key_quote ≤ 12 palabras copiadas literalmente; cada ítem de listas ≤ 30 palabras; 2 a 4 ítems por lista.
-{
- "nodes":[{"role":"student|tutor|mentor","qid":"att-L|att-R|int-L|int-R|dec-L|dec-R|dec-D","alact":"Acción|Looking Back|Awareness|Alternatives|Trial","alact_rationale":"...","noticing":"Atender|Interpretar|Decidir","practice":"Indagación|Modelización|Argumentación|Naturaleza de la ciencia|No identificable","movement":false,"movement_to":null,"reflexive_depth":"descriptivo|analítico|crítico","key_quote":"..."}],
- "convergences":["..."],
- "divergences":["..."],
- "reflective_triggers":["..."],
- "alact_pattern":"2-3 frases sobre la trayectoria reflexiva de la tríada en conjunto",
- "summary":"resumen del encuentro en 3-4 frases: foco del episodio, cómo se movió la reflexión entre preguntas y actores, y principal tensión",
- "role_profiles":{"student":"1-2 frases","tutor":"1-2 frases","mentor":"1-2 frases"}
-}`;
+4. reflexive_depth — descriptivo (relata) | analítico (explica causas o relaciones) | crítico (cuestiona supuestos o considera implicancias para el aprendizaje de todos).
+
+5. evidence — fragmento LITERAL de la respuesta (≤ 15 palabras) que justifica la fase ALACT.
+6. rationale — ≤ 15 palabras: qué indicador de ALACT se cumple.
+
+Responde SOLO con JSON válido, sin texto previo ni backticks, con un objeto por cada id recibido:
+{"codes":[{"id":"R01","noticing":"Atender|Interpretar|Decidir","alact":"Acción|Looking Back|Awareness|Alternatives|Trial","practice":"Indagación|Modelización|Argumentación|NdC|No identificable","reflexive_depth":"descriptivo|analítico|crítico","evidence":"...","rationale":"..."}]}`;
+
+const SYNTH_SYSTEM = `Eres un analista de noticing docente y del modelo ALACT en tríadas formativas (estudiante en formación, tutor universitario, profesor mentor) de pedagogía en ciencias naturales.
+
+Recibes las respuestas de la tríada y una tabla de codificación ya hecha (no la modifiques ni la contradigas). Redacta la síntesis del encuentro basándote en el CONTENIDO de las respuestas y en esa tabla. Sé específico al episodio: cita ideas concretas de las respuestas, no frases genéricas que servirían para cualquier tríada.
+
+Responde SOLO con JSON válido, sin backticks. Cada ítem de lista ≤ 30 palabras, 2 a 4 ítems:
+{"convergences":["en qué coinciden los actores, con contenido concreto"],
+ "divergences":["en qué difieren (foco, interpretación o decisión), nombrando a los actores"],
+ "reflective_triggers":["preguntas o tensiones concretas para discutir en la reunión"],
+ "alact_pattern":"2-3 frases sobre cómo se movió la reflexión de cada actor según la tabla",
+ "summary":"3-4 frases: foco del episodio, cómo se movió la reflexión y principal tensión",
+ "role_profiles":{"student":"1-2 frases","tutor":"1-2 frases","mentor":"1-2 frases"}}`;
+
 function wordingNote(){
   return usingTipo()
     ? 'NOTA: los tres actores analizan la misma bitácora tipo, escrita por otra practicante; "la autora" es esa practicante.\n'
     : 'NOTA: el estudiante responde sobre su propia bitácora (preguntas en primera persona); tutor y mentor responden sobre la bitácora del estudiante.\n';
 }
-function mapUserMsg(){
-  const pairs = expectedPairs();
-  return episodeBlock() + wordingNote()
-    + 'Genera exactamente '+pairs.length+' nodos, uno por cada par rol:pregunta respondido: '+pairs.join(', ')+'.\n'
-    + 'Respuestas de la tríada:'+answersBlock();
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// Builds the blind batch: random order, opaque ids, question text only (no role, no L/R/D type)
+function blindItems(){
+  const items=[];
+  ROLE_KEYS.forEach(r=>QUESTIONS.forEach(q=>{ const t=S.all[r]?.[q.id]?.text?.trim(); if(t) items.push({role:r, qid:q.id, question:qText(q,r), text:t}); }));
+  return shuffle(items).map((it,i)=>Object.assign(it,{id:'R'+String(i+1).padStart(2,'0')}));
+}
+function codingUserMsg(items){
+  return episodeBlock()
+    + 'Codifica estas '+items.length+' respuestas (ids '+items[0].id+' a '+items[items.length-1].id+'). Cada una es independiente.\n\n'
+    + items.map(it=>it.id+'\nPregunta: '+it.question+'\nRespuesta: '+it.text).join('\n\n');
+}
+function synthUserMsg(nodes){
+  const table = nodes.slice().sort((a,b)=>ROLE_KEYS.indexOf(a.role)-ROLE_KEYS.indexOf(b.role)||a.n-b.n)
+    .map(n=>ROLE[n.role].short+' · P'+n.n+' ('+QBY[n.qid].phaseLabel+'): '+n.alact+' / '+n.noticing+' / '+PRACTICE_LABEL[n.practice]+' / '+n.depth).join('\n');
+  return episodeBlock() + wordingNote() + 'TABLA DE CODIFICACIÓN:\n'+table+'\n\nRESPUESTAS:'+answersBlock();
+}
+function codesToNodes(codes, items){
+  const byId = Object.fromEntries(items.map(it=>[it.id,it]));
+  const seen={};
+  return (codes||[]).map(c=>{
+    const it=byId[String(c.id||'').trim().toUpperCase()]; if(!it || seen[it.id]) return null;
+    const alact=normAlact(c.alact); if(!alact) return null;
+    seen[it.id]=1;
+    const q=QBY[it.qid], noticing=normNoticing(c.noticing, it.qid);
+    return {role:it.role, qid:it.qid, n:q.n, qtype:q.type, alact, noticing,
+      practice:normPractice(c.practice), movement: noticing!==q.phaseLabel, movement_to: noticing!==q.phaseLabel ? noticing : null,
+      depth:normDepth(c.reflexive_depth), quote:c.evidence||c.key_quote||'', rationale:c.rationale||c.alact_rationale||'', blind_id:it.id};
+  }).filter(Boolean);
+}
+// Flags outputs that look like a template rather than content-based coding
+function templateWarnings(nodes){
+  const w=[];
+  if(nodes.length>=6 && new Set(nodes.map(n=>n.practice)).size===1) w.push('todas las respuestas quedaron en la misma práctica ('+PRACTICE_LABEL[nodes[0].practice]+')');
+  const seqs = ROLE_KEYS.map(r=>nodes.filter(n=>n.role===r).sort((a,b)=>a.n-b.n)).filter(x=>x.length>=5).map(x=>x.map(n=>n.qid+':'+n.alact).join(','));
+  if(seqs.length>=2 && new Set(seqs).size===1) w.push('los roles tienen exactamente la misma secuencia ALACT');
+  const EXP={L:['Acción','Looking Back'],R:['Awareness','Alternatives'],D:['Alternatives','Trial']};
+  if(nodes.length>=12 && nodes.filter(n=>EXP[n.qtype].includes(n.alact)).length/nodes.length>=0.95) w.push('la fase ALACT coincide casi siempre con la esperada para el tipo de pregunta');
+  return w;
 }
 const REPORT_SYSTEM = `Eres asistente de coordinación de prácticas de la PUCV. Redactas el BORRADOR del acta "Reunión de Tríada Formativa" (Práctica Docente Final, pedagogía en ciencias naturales) a partir de las respuestas de la tríada y de un análisis previo de noticing reflexivo.
 
@@ -1324,21 +1376,34 @@ async function generateAnalysis(){
   if(!guard()) return;
   if(aiBusyElsewhere()){ alert('La IA ya está procesando una solicitud'+(S.ai.by?' iniciada por '+ROLE[S.ai.by]?.short:'')+'. Espera a que termine.'); return; }
   if(!expectedPairs().length){ alert('Aún no hay respuestas para analizar.'); return; }
+  let nodes, coding, items;
   try{
+    // 1) blind coding
     setStatus({state:'running', task:'map', stage:0, startedAt:Date.now(), by:S.role, msg:''});
-    const r = await callAI('map', [{role:'system', content:MAP_SYSTEM},{role:'user', content:mapUserMsg()}]);
-    const {data, repaired} = parseAIJson(r.text);
-    const result = normalizeResult(data);
-    if(!result.nodes.length) throw new Error('El JSON no contiene nodos válidos.');
-    setStatus({stage:4});
-    await db.ref(P('map')).set({result, ts:Date.now(), model:r.model, ms:r.ms, usage:r.usage||null, by:S.role, repaired, expected:expectedPairs().length});
+    items = blindItems();
+    coding = await callAI('map', [{role:'system', content:CODING_SYSTEM},{role:'user', content:codingUserMsg(items)}]);
+    const parsed = parseAIJson(coding.text);
+    nodes = codesToNodes(parsed.data.codes || parsed.data.nodes, items);
+    if(!nodes.length) throw new Error('La codificación no trajo respuestas válidas.');
+    coding.repaired = parsed.repaired;
+    setStatus({state:'done', stage:5, ms:coding.ms, tokens:coding.usage?.total_tokens||null});
+  }catch(e){ setStatus({state:'error', msg:e.message}); return; }
+  let synth={}, synthModel=null, synthOk=true;
+  try{
+    // 2) synthesis over the coded table
+    setStatus({state:'running', task:'synth', stage:0, startedAt:Date.now(), by:S.role, msg:''});
+    const r = await callAI('synth', [{role:'system', content:SYNTH_SYSTEM},{role:'user', content:synthUserMsg(nodes)}]);
+    synth = parseAIJson(r.text).data; synthModel=r.model;
     setStatus({state:'done', stage:5, ms:r.ms, tokens:r.usage?.total_tokens||null});
-  }catch(e){
-    setStatus({state:'error', msg:e.message});
-    return;
-  }
-  // stage 2: report draft
-  await generateReport(true);
+  }catch(e){ synthOk=false; setStatus({state:'error', msg:'Síntesis: '+e.message}); }
+  const base = normalizeResult(Object.assign({nodes:[]}, synth));
+  const result = Object.assign(base, {nodes});
+  try{
+    await db.ref(P('map')).set({result, ts:Date.now(), model:coding.model, synth_model:synthModel, ms:coding.ms, usage:coding.usage||null,
+      by:S.role, repaired:!!coding.repaired, expected:expectedPairs().length, prompt_version:PROMPT_VERSION,
+      order:items.map(it=>it.id+'='+it.role+':'+it.qid).join(','), raw_coding:String(coding.text).slice(0,20000)});
+  }catch(e){ setStatus({state:'error', msg:'No se pudo guardar el mapa: '+e.message}); return; }
+  if(synthOk) await generateReport(true);
 }
 async function generateReport(chained){
   if(!guard()) return;
@@ -1532,6 +1597,8 @@ function renderMapTab(){
     +'<span class="lg-item" style="cursor:default"><svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="#8a90a0" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Trayectoria</span>'
     +'<span class="lg-item" style="cursor:default"><svg width="26" height="18"><rect x="2" y="2" width="22" height="14" rx="7" fill="none" stroke="#8a90a0" stroke-dasharray="2 2"/></svg>Movimiento entre dimensiones</span></div>'
     +(missing>0?'<p class="error" style="margin:.2rem 0 .4rem">La IA clasificó '+nodes.length+' de '+S.map.expected+' respuestas. Puedes regenerar para completar.</p>':'')
+    +(()=>{ const w=templateWarnings(nodes); return w.length?'<div class="callout" style="border-color:#F3C98B;background:#FFF8EC;margin:.4rem 0;font-size:13.5px"><b>Revisa esta codificación:</b> '+w.join('; ')+'. Puede ser un patrón del modelo más que de las respuestas; considera regenerar.</div>':''; })()
+    +(S.map.prompt_version?'':'<p class="muted" style="color:var(--warn)">Este mapa se generó con la versión anterior del análisis (no ciega). Regenera para codificar de nuevo.</p>')
     +(S.map.repaired?'<p class="muted" style="color:var(--warn)">La respuesta llegó truncada y se reparó automáticamente; algunos elementos finales pueden faltar.</p>':'')
     +'<div class="map-scroll" id="map-svg">'+svg+'</div>'
     +'<div class="qkey">'+QUESTIONS.map(q=>'<span><b>'+q.n+'</b>'+q.phaseLabel+' · '+q.typeLabel+'</span>').join('')+'</div>'

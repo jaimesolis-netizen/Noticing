@@ -486,6 +486,7 @@ details summary{cursor:pointer;font-weight:700;font-size:14.5px;font-family:var(
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script>
 // ═══════════════════════════════════════════
 // CONFIG
@@ -501,10 +502,27 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+// Anonymous sign-in: the database rules only accept authenticated clients.
+let _authP = null;
+function ensureAuth(){
+  if(firebase.auth().currentUser) return Promise.resolve(firebase.auth().currentUser);
+  if(!_authP) _authP = firebase.auth().signInAnonymously().then(c=>c.user).catch(e=>{ _authP=null; throw e; });
+  return _authP;
+}
+async function authOrError(){
+  try{ await ensureAuth(); return true; }
+  catch(e){
+    homeError(e.code==='auth/admin-restricted-operation' || e.code==='auth/operation-not-allowed'
+      ? 'Falta habilitar el acceso anónimo en Firebase (Authentication → Método de acceso → Anónimo).'
+      : 'No se pudo conectar con la base de datos ('+(e.code||e.message)+'). Revisa tu conexión o avisa al tutor.');
+    return false;
+  }
+}
 
 const WORKER_URL = 'https://noticing-proxy.jaime-solis.workers.dev/';
 // Modelo configurado en el Worker. Si el Worker devuelve `model`, se usa el real.
-const AI_DEFAULT = {model:'poolside/laguna-s-2.1:free', provider:'OpenRouter'};
+// Modelo principal del Worker (el Worker prueba otros si este falla y devuelve el que respondió).
+const AI_DEFAULT = {model:'nvidia/nemotron-3-ultra-550b-a55b:free', provider:'OpenRouter'};
 const AI_TIMEOUT_MS = 240000;
 const DOCX_CDN = 'https://cdn.jsdelivr.net/npm/docx@9.9.0/dist/index.iife.js';
 
@@ -716,6 +734,7 @@ function homeError(msg){
   setTimeout(()=>el.style.display='none', 3500);
 }
 async function createSession(){
+  if(!(await authOrError())) return;
   if(!S.role) return homeError('Primero selecciona tu rol');
   if(!isManager()) return homeError('Solo el tutor universitario crea la sesión. Pídele el código y únete.');
   // never reuse an existing code: a new session must not touch an old one
@@ -735,6 +754,7 @@ async function createSession(){
   enterSession();
 }
 async function joinSession(){
+  if(!(await authOrError())) return;
   if(!S.role) return homeError('Primero selecciona tu rol');
   const code = $('session-input').value.trim().toUpperCase();
   if(!code) return homeError('Ingresa un código de sesión');
@@ -1022,7 +1042,7 @@ function modelInfo(slug){
   slug = slug || AI_DEFAULT.model;
   const [vendor, rest] = slug.includes('/') ? slug.split('/') : ['', slug];
   const free = /:free$/.test(slug);
-  const known = {'poolside/laguna-s-2.1':'Laguna S 2.1'};
+  const known = {'poolside/laguna-s-2.1':'Laguna S 2.1', 'nvidia/nemotron-3-ultra-550b-a55b':'Nemotron 3 Ultra', 'nvidia/nemotron-3.5-super-vl':'Nemotron 3.5 Super', 'google/gemma-4-31b-it':'Gemma 4 31B', 'google/gemma-4-26b-a4b-it':'Gemma 4 26B'};
   const base = slug.replace(/:free$/,'');
   const name = known[base] || (rest||slug).replace(/:free$/,'').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
   const vendorName = vendor ? vendor.charAt(0).toUpperCase()+vendor.slice(1) : '';
@@ -1076,6 +1096,7 @@ function renderAIStatus(){
     ['Tokens', a.usage? (a.usage.prompt_tokens||'?')+' entrada · '+(a.usage.completion_tokens||'?')+' salida':'—'],
     ['Última actualización', a.updatedAt?fmtDate(a.updatedAt):'—']
   ];
+  if(a.fallbacks) kv.push(['Modelos que fallaron antes', a.fallbacks]);
   if(a.msg && state==='error') kv.push(['Detalle', a.msg]);
   $('ai-kv').innerHTML = kv.map(([k,v])=>'<dt>'+k+'</dt><dd>'+esc(v)+'</dd>').join('');
   tickTimer();
@@ -1092,7 +1113,7 @@ setInterval(tickTimer, 500);
 // ═══════════════════════════════════════════
 async function callAI(task, messages){
   const t0 = Date.now();
-  setStatus({state:'running', task, stage:1, startedAt:t0, by:S.role, msg:'', chars:0, usage:null, model:S.ai.model||AI_DEFAULT.model});
+  setStatus({state:'running', task, stage:1, startedAt:t0, by:S.role, msg:'', chars:0, usage:null, fallbacks:'', model:S.ai.model||AI_DEFAULT.model});
   const ctrl = new AbortController();
   const to = setTimeout(()=>ctrl.abort(), AI_TIMEOUT_MS);
   let res;
@@ -1113,10 +1134,12 @@ async function callAI(task, messages){
   if(data.error && !text){
     let msg = data.error;
     if(/rate|429|limit/i.test(msg)) msg += ' — límite del modelo gratuito; espera un minuto y reintenta.';
+    else if(/no longer available|no endpoints|not a valid model|no provider/i.test(msg)) msg += ' — el modelo ya no está disponible en OpenRouter; actualiza la variable OPENROUTER_MODELS del Worker.';
     throw new Error(msg);
   }
   if(!text) throw new Error('El modelo devolvió una respuesta vacía.');
-  setStatus({stage:3, chars:text.length, usage, model, provider:data.provider?('OpenRouter → '+data.provider):AI_DEFAULT.provider});
+  setStatus({stage:3, chars:text.length, usage, model, provider:data.provider?('OpenRouter → '+data.provider):AI_DEFAULT.provider,
+    fallbacks:(data.tried||[]).map(t=>modelInfo(t.model).name+' ('+String(t.error).slice(0,60)+')').join(' · ')});
   return {text, model, usage, ms:Date.now()-t0};
 }
 async function pingAI(ev){
@@ -1795,11 +1818,11 @@ async function exportJSON(){
     const saved=JSON.parse(lsGet('ntr_session')||'null');
     if(saved && saved.sid && saved.role && (!qs || qs.toUpperCase()===saved.sid)){
       S.role=saved.role; S.sid=saved.sid; selectRole(saved.role);
-      findSession(saved.sid).then(f=>{
+      ensureAuth().then(()=>findSession(saved.sid)).then(f=>{
         if(!f){ lsSet('ntr_session', null); return; }
         if(f.data.meta?.estado==='cerrada' && saved.role!==MANAGER){ lsSet('ntr_session', null); return; }
         S.root=f.root; enterSession();
-      });
+      }).catch(()=>{});
     }
   }catch(e){}
 })();

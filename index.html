@@ -845,7 +845,7 @@ function attachListeners(){
   listen('map', v=>{ S.map=v||null; onDataChange('map'); });
   listen('report', v=>{ S.report=v||null; onDataChange('report'); });
   listen('report_edits', v=>{ S.edits=v||{}; onDataChange('edits'); });
-  listen('ai_status', v=>{ S.ai=v||{state:'idle'}; renderAIStatus(); });
+  listen('ai_status', v=>{ const prev=S.ai?.state; S.ai=v||{state:'idle'}; renderAIStatus(); if(prev!==S.ai.state && ['error','done'].includes(S.ai.state) && S.tab==='map' && $('screen-view').classList.contains('active')) renderMapTab(); });
 }
 function onDataChange(kind){
   const onView = $('screen-view').classList.contains('active');
@@ -1161,6 +1161,11 @@ async function pingAI(ev){
 function parseAIJson(raw){
   let t = raw.replace(/<think>[\s\S]*?<\/think>/gi,'').replace(/```json|```/gi,'').trim();
   const s = t.indexOf('{');
+  const sa = t.indexOf('[');
+  if(sa>=0 && (s<0 || sa<s)){
+    const ea = t.lastIndexOf(']');
+    try{ return {data:JSON.parse(t.slice(sa, ea+1)), repaired:false}; }catch(_){}
+  }
   if(s<0) throw new Error('La IA no devolvió JSON');
   t = t.slice(s);
   const e = t.lastIndexOf('}');
@@ -1319,11 +1324,21 @@ function synthUserMsg(nodes){
     .map(n=>ROLE[n.role].short+' · P'+n.n+' ('+QBY[n.qid].phaseLabel+'): '+n.alact+' / '+n.noticing+' / '+PRACTICE_LABEL[n.practice]+' / '+n.depth).join('\n');
   return episodeBlock() + wordingNote() + 'TABLA DE CODIFICACIÓN:\n'+table+'\n\nRESPUESTAS:'+answersBlock();
 }
+function pickCodes(data){
+  if(Array.isArray(data)) return data;
+  if(!data || typeof data!=='object') return [];
+  if(Array.isArray(data.codes)) return data.codes;
+  if(Array.isArray(data.nodes)) return data.nodes;
+  const arr = Object.values(data).find(v=>Array.isArray(v) && v.length && typeof v[0]==='object');
+  return arr || [];
+}
+function normId(v){ const m=String(v==null?'':v).match(/\d+/); return m ? 'R'+String(+m[0]).padStart(2,'0') : ''; }
 function codesToNodes(codes, items){
   const byId = Object.fromEntries(items.map(it=>[it.id,it]));
   const seen={};
-  return (codes||[]).map(c=>{
-    const it=byId[String(c.id||'').trim().toUpperCase()]; if(!it || seen[it.id]) return null;
+  const usePosition = codes.length===items.length && codes.every(c=>!normId(c.id ?? c.ID ?? c.codigo));
+  return (codes||[]).map((c,i)=>{
+    const it = usePosition ? items[i] : byId[normId(c.id ?? c.ID ?? c.codigo)]; if(!it || seen[it.id]) return null;
     const alact=normAlact(c.alact); if(!alact) return null;
     seen[it.id]=1;
     const q=QBY[it.qid], noticing=normNoticing(c.noticing, it.qid);
@@ -1383,8 +1398,9 @@ async function generateAnalysis(){
     items = blindItems();
     coding = await callAI('map', [{role:'system', content:CODING_SYSTEM},{role:'user', content:codingUserMsg(items)}]);
     const parsed = parseAIJson(coding.text);
-    nodes = codesToNodes(parsed.data.codes || parsed.data.nodes, items);
-    if(!nodes.length) throw new Error('La codificación no trajo respuestas válidas.');
+    const codes = pickCodes(parsed.data);
+    nodes = codesToNodes(codes, items);
+    if(!nodes.length) throw new Error('La codificación no trajo respuestas válidas ('+codes.length+' códigos recibidos, ninguno reconocible). Inicio de la salida: '+String(coding.text).slice(0,160));
     coding.repaired = parsed.repaired;
     setStatus({state:'done', stage:5, ms:coding.ms, tokens:coding.usage?.total_tokens||null});
   }catch(e){ setStatus({state:'error', msg:e.message}); return; }
@@ -1598,6 +1614,8 @@ function renderMapTab(){
     +'<span class="lg-item" style="cursor:default"><svg width="26" height="18"><rect x="2" y="2" width="22" height="14" rx="7" fill="none" stroke="#8a90a0" stroke-dasharray="2 2"/></svg>Movimiento entre dimensiones</span></div>'
     +(missing>0?'<p class="error" style="margin:.2rem 0 .4rem">La IA clasificó '+nodes.length+' de '+S.map.expected+' respuestas. Puedes regenerar para completar.</p>':'')
     +(()=>{ const w=templateWarnings(nodes); return w.length?'<div class="callout" style="border-color:#F3C98B;background:#FFF8EC;margin:.4rem 0;font-size:13.5px"><b>Revisa esta codificación:</b> '+w.join('; ')+'. Puede ser un patrón del modelo más que de las respuestas; considera regenerar.</div>':''; })()
+    +((S.ai.state==='error' && ['map','synth'].includes(S.ai.task) && (S.ai.updatedAt||0)>S.map.ts)
+        ? '<div class="callout" style="border-color:#E8A39A;background:#FFF1EF;margin:.4rem 0;font-size:13.5px"><b>El último intento de análisis falló</b> ('+esc(S.ai.msg||'')+'). Lo que ves abajo es el mapa ANTERIOR, del '+fmtDate(S.map.ts)+'.</div>' : '')
     +(S.map.prompt_version?'':'<p class="muted" style="color:var(--warn)">Este mapa se generó con la versión anterior del análisis (no ciega). Regenera para codificar de nuevo.</p>')
     +(S.map.repaired?'<p class="muted" style="color:var(--warn)">La respuesta llegó truncada y se reparó automáticamente; algunos elementos finales pueden faltar.</p>':'')
     +'<div class="map-scroll" id="map-svg">'+svg+'</div>'
@@ -1616,6 +1634,7 @@ function renderMapTab(){
     +'<div class="card" style="border-top:3px solid var(--ink)"><h3>Nudos reflexivos</h3><p class="muted" style="margin-bottom:.3rem">Agenda para la discusión</p>'+list(m.reflective_triggers)+'</div>'
     +'</div>';
   if(Object.keys(m.role_profiles||{}).length) h+='<div class="grid3" style="margin-bottom:1rem">'+ROLE_KEYS.map(r=>'<div class="card" style="border-top:3px solid '+ROLE[r].c+'"><h3 style="color:'+ROLE[r].d+'">'+ROLE[r].label+'</h3><p style="font-size:13.5px">'+esc(m.role_profiles[r]||'—')+'</p></div>').join('')+'</div>';
+  if(isManager() && S.map.raw_coding) h+='<div class="card"><details><summary>Salida cruda de la IA (codificación)</summary><p class="muted" style="margin:.4rem 0">Modelo: '+esc(S.map.model||'')+' · prompt '+esc(S.map.prompt_version||'')+' · orden: '+esc(S.map.order||'')+'</p><pre style="white-space:pre-wrap;font-size:12px;max-height:360px;overflow:auto;background:var(--surface2);padding:10px;border-radius:8px">'+esc(S.map.raw_coding)+'</pre></details></div>';
   h+='<div class="card"><details><summary>Tabla de codificación ('+nodes.length+' respuestas)</summary><div style="overflow-x:auto;margin-top:.6rem">'+codingTable(nodes)+'</div></details></div>';
   h+='<div class="row">'+(isManager()?'<button class="btn btn-dark grow" onclick="if(confirm(\'¿Regenerar el análisis? Se reemplazarán el mapa y el borrador del informe.\'))generateAnalysis()" '+(running?'disabled':'')+'>↺ Regenerar análisis</button>':'')+'<button class="btn grow" onclick="switchTab(\'report\')">Ver informe →</button></div>';
   box.innerHTML=h;
@@ -1624,7 +1643,7 @@ function renderMapTab(){
 function codingTable(nodes){
   return '<table class="data"><thead><tr><th>Rol</th><th>#</th><th>Noticing</th><th>ALACT</th><th>Práctica</th><th>Profundidad</th><th>Mov.</th><th>Fragmento</th><th>Justificación</th></tr></thead><tbody>'
     + nodes.slice().sort((a,b)=>ROLE_KEYS.indexOf(a.role)-ROLE_KEYS.indexOf(b.role)||a.n-b.n).map(n=>
-      '<tr><td>'+pill(n.role)+'</td><td>'+n.n+'</td><td>'+n.noticing+'</td><td>'+n.alact+'</td><td>'+PRACTICE_LABEL[n.practice]+'</td><td>'+n.depth+'</td><td>'+(n.movement?'→ '+esc(n.movement_to||'sí'):'')+'</td><td><i>'+esc(n.quote)+'</i></td><td>'+esc(n.rationale)+'</td></tr>').join('')
+      '<tr><td>'+pill(n.role)+(n.blind_id?' <span class="muted">'+n.blind_id+'</span>':'')+'</td><td>'+n.n+'</td><td>'+n.noticing+'</td><td>'+n.alact+'</td><td>'+PRACTICE_LABEL[n.practice]+'</td><td>'+n.depth+'</td><td>'+(n.movement?'→ '+esc(n.movement_to||'sí'):'')+'</td><td><i>'+esc(n.quote)+'</i></td><td>'+esc(n.rationale)+'</td></tr>').join('')
     + '</tbody></table>';
 }
 function toggleRole(r){ S.hidden[r]=!S.hidden[r]; renderMapTab(); }
